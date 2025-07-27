@@ -1,36 +1,233 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Yesod - Plateforme SaaS de Recouvrement de Créances
 
-## Getting Started
+Cabinet Yesod est une plateforme SaaS moderne spécialisée dans le recouvrement amiable et judiciaire, développée spécifiquement pour les cabinets d'avocats d'affaires et leurs clients TPE/PME.
 
-First, run the development server:
+## 🎯 Fonctionnalités
+
+### ✅ Fonctionnalités Implémentées
+
+#### 🏠 Page d'Accueil Publique
+- **Générateur de mise en demeure PDF** avec en-tête personnalisé du cabinet
+- Formulaire complet pour créer des mises en demeure professionnelles
+- Option d'envoi par email
+- Design responsive et moderne
+- Présentation des étapes du processus de recouvrement
+
+#### 🔐 Système d'Authentification
+- Connexion avec NextAuth (email/mot de passe + Google OAuth)
+- Pages de connexion et inscription sécurisées
+- Gestion des rôles (CLIENT, LAWYER, ADMIN)
+- Interface utilisateur moderne et intuitive
+
+#### 📊 Tableau de Bord Client
+- Vue d'ensemble des dossiers personnels
+- Statistiques détaillées (montants, statuts, échéances)
+- Interface pour créer de nouveaux dossiers
+- Suivi en temps réel de l'avancement des procédures
+
+#### ⚖️ Backoffice Avocat
+- Dashboard complet avec statistiques globales
+- Gestion centralisée de tous les dossiers clients
+- Filtres et recherche avancée
+- Vision 360° de l'activité du cabinet
+- Interface optimisée pour une gestion efficace
+
+### 🚧 En Développement
+- Système de messagerie sécurisée
+- Génération automatique d'actes juridiques
+- Gestion des échéances et notifications
+- Module de facturation intégré
+
+## 🛠 Technologies Utilisées
+
+### Frontend
+- **Next.js 15** avec App Router
+- **TypeScript** pour la sécurité des types
+- **TailwindCSS** pour le design
+- **Lucide React** pour les icônes
+- **NextAuth** pour l'authentification
+
+### Backend
+- **API Routes Next.js** 
+- **Prisma ORM** avec PostgreSQL
+- **pdf-lib** pour la génération de PDF
+- **bcryptjs** pour le hashage des mots de passe
+
+### Base de Données
+- **PostgreSQL** avec modèles complets
+- Schéma optimisé pour le recouvrement de créances
+- Relations entre utilisateurs, dossiers, actions et documents
+
+### Infrastructure
+- **Docker Compose** pour le développement
+- **Vercel** ready pour le déploiement
+- Variables d'environnement sécurisées
+
+## 🚀 Installation et Configuration
+
+### Prérequis
+- Node.js 18+ 
+- Docker et Docker Compose
+- npm ou yarn
+
+### Installation
 
 ```bash
+# Cloner le repository
+git clone https://github.com/Yankel-Bensimhon/Yesod.git
+cd Yesod
+
+# Installer les dépendances
+npm install
+
+# Configurer les variables d'environnement
+cp .env.example .env.local
+# Éditer .env.local avec vos valeurs
+
+# Démarrer PostgreSQL avec Docker
+docker-compose up -d postgres
+
+# Générer le client Prisma
+npx prisma generate
+
+# Appliquer les migrations
+npx prisma db push
+
+# Démarrer le serveur de développement
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Variables d'Environnement
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```env
+# Base de données
+DATABASE_URL="postgresql://yesod:yesod_password@localhost:5432/yesod_db"
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+# NextAuth
+NEXTAUTH_URL="http://localhost:3000"
+NEXTAUTH_SECRET="your-nextauth-secret-key"
 
-## Learn More
+# OAuth Google (optionnel)
+GOOGLE_CLIENT_ID="your-google-client-id"
+GOOGLE_CLIENT_SECRET="your-google-client-secret"
+```
 
-To learn more about Next.js, take a look at the following resources:
+## 📁 Structure du Projet
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```
+src/
+├── app/                          # App Router Next.js
+│   ├── api/                      # API Routes
+│   │   ├── auth/                 # Authentification
+│   │   ├── cases/                # Gestion des dossiers
+│   │   └── generate-pdf/         # Génération PDF
+│   ├── auth/                     # Pages d'authentification
+│   ├── dashboard/                # Interface client
+│   ├── backoffice/               # Interface avocat
+│   └── globals.css               # Styles globaux
+├── components/                   # Composants réutilisables
+│   ├── ui/                       # Composants UI de base
+│   ├── layout/                   # Navigation et layout
+│   └── providers/                # Providers React
+├── lib/                          # Utilitaires et configuration
+└── types/                        # Types TypeScript
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+prisma/
+└── schema.prisma                 # Schéma de base de données
 
-## Deploy on Vercel
+docker-compose.yml                # Configuration Docker
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 🎨 Interface Utilisateur
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### Design System
+- **Couleurs principales** : Bleu professionnel (#2563eb) et nuances de gris
+- **Typographie** : Système de polices moderne
+- **Composants** : Basés sur Radix UI et TailwindCSS
+- **Responsive** : Optimisé mobile-first
+
+### Pages Principales
+1. **Accueil** : Landing page avec générateur PDF
+2. **Connexion/Inscription** : Formulaires sécurisés
+3. **Dashboard Client** : Gestion personnelle des dossiers
+4. **Backoffice Avocat** : Interface de gestion complète
+
+## 🔒 Sécurité et Conformité
+
+### Sécurité Implémentée
+- Authentification sécurisée avec NextAuth
+- Hashage des mots de passe avec bcryptjs
+- Protection CSRF intégrée
+- Validation des données côté client et serveur
+- Gestion des rôles et permissions
+
+### RGPD Ready
+- Structure prête pour la gestion des consentements
+- Modèles de données conformes
+- Possibilité de suppression des comptes
+- Logs d'accès et d'actions
+
+## 📄 API Documentation
+
+### Endpoints Principaux
+
+#### Authentification
+- `POST /api/auth/register` - Inscription
+- `POST /api/auth/[...nextauth]` - NextAuth endpoints
+
+#### Dossiers
+- `GET /api/cases` - Liste des dossiers
+- `POST /api/cases` - Créer un dossier
+- `GET /api/cases/[id]` - Détails d'un dossier
+
+#### PDF
+- `POST /api/generate-pdf` - Générer une mise en demeure
+
+## 🚀 Déploiement
+
+### Vercel (Recommandé)
+```bash
+# Installer Vercel CLI
+npm i -g vercel
+
+# Déployer
+vercel
+```
+
+### Docker Production
+```bash
+# Build de l'image
+docker build -t yesod-app .
+
+# Lancer avec Docker Compose
+docker-compose up -d
+```
+
+## 🤝 Contribution
+
+### Standards de Code
+- TypeScript strict
+- ESLint + Prettier
+- Conventional Commits
+- Tests unitaires (à venir)
+
+### Workflow
+1. Fork du repository
+2. Créer une branche feature
+3. Commit avec des messages clairs
+4. Pull Request avec description détaillée
+
+## 📧 Support
+
+Pour toute question ou support :
+- **Email** : contact@cabinet-yesod.fr
+- **Issues** : GitHub Issues
+- **Documentation** : Wiki du projet
+
+## 📜 Licence
+
+Ce projet est sous licence propriétaire. Tous droits réservés au Cabinet Yesod.
+
+---
+
+**Cabinet Yesod** - Recouvrement de Créances Professionnel & Efficace
