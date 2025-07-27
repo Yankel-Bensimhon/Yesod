@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import Navbar from "@/components/layout/navbar";
+import NextAuthProvider from "@/components/providers/nextauth-provider";
 
 export const metadata: Metadata = {
   title: "Cabinet Yesod - Recouvrement de Créances",
@@ -15,8 +16,10 @@ export default function RootLayout({
   return (
     <html lang="fr">
       <body className="antialiased">
-        <Navbar />
-        {children}
+        <NextAuthProvider>
+          <Navbar />
+          {children}
+        </NextAuthProvider>
       </body>
     </html>
   );

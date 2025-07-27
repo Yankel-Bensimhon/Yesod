@@ -1,15 +1,14 @@
 'use client'
 
 import Link from 'next/link'
+import { useSession, signOut } from 'next-auth/react'
 import { Button } from '@/components/ui/button'
 import { Scale, User, LogOut, Menu } from 'lucide-react'
 import { useState } from 'react'
 
 export default function Navbar() {
+  const { data: session } = useSession()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
-  
-  // Temporary mock session - will be replaced with NextAuth
-  const session = null
 
   return (
     <nav className="bg-white shadow-sm border-b">
@@ -34,20 +33,23 @@ export default function Navbar() {
                 >
                   Tableau de bord
                 </Link>
-                <Link
-                  href="/backoffice"
-                  className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium"
-                >
-                  Backoffice
-                </Link>
+                {session.user?.role === 'LAWYER' || session.user?.role === 'ADMIN' ? (
+                  <Link
+                    href="/backoffice"
+                    className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium"
+                  >
+                    Backoffice
+                  </Link>
+                ) : null}
                 <div className="flex items-center space-x-2">
                   <User className="h-5 w-5 text-gray-500" />
                   <span className="text-sm text-gray-700">
-                    Utilisateur
+                    {session.user?.name || session.user?.email}
                   </span>
                   <Button
                     variant="ghost"
                     size="sm"
+                    onClick={() => signOut()}
                     className="ml-2"
                   >
                     <LogOut className="h-4 w-4" />
@@ -91,13 +93,16 @@ export default function Navbar() {
                 >
                   Tableau de bord
                 </Link>
-                <Link
-                  href="/backoffice"
-                  className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-blue-600"
-                >
-                  Backoffice
-                </Link>
+                {session.user?.role === 'LAWYER' || session.user?.role === 'ADMIN' ? (
+                  <Link
+                    href="/backoffice"
+                    className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-blue-600"
+                  >
+                    Backoffice
+                  </Link>
+                ) : null}
                 <button
+                  onClick={() => signOut()}
                   className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-blue-600"
                 >
                   Se déconnecter
