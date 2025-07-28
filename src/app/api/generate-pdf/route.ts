@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
     let yPosition = height - 50
     
     // Header - Cabinet info
-    page.drawText('CABINET YESOD', {
+    page.drawText('YESOD', {
       x: 50,
       y: yPosition,
       size: 20,
@@ -200,7 +200,10 @@ export async function POST(request: NextRequest) {
         yPosition = height - 50
       }
       
-      page.drawText(line, {
+      // Clean the text to remove characters that can't be encoded in WinAnsi
+      const cleanLine = line.replace(/[\u00A0\u202F\u2007\u2009\u200A]/g, ' ').replace(/[^\x20-\x7E\xA0-\xFF]/g, '?')
+      
+      page.drawText(cleanLine, {
         x: 50,
         y: yPosition,
         size: 11,

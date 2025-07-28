@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import Navbar from "@/components/layout/navbar";
+import Footer from "@/components/layout/footer";
 import NextAuthProvider from "@/components/providers/nextauth-provider";
 
 export const metadata: Metadata = {
-  title: "Cabinet Yesod - Recouvrement de Créances",
+  title: "Yesod - Recouvrement de Créances",
   description: "Plateforme SaaS spécialisée dans le recouvrement amiable et judiciaire, pilotée par notre cabinet d'avocats d'affaires.",
 };
 
@@ -19,6 +20,7 @@ export default function RootLayout({
         <NextAuthProvider>
           <Navbar />
           {children}
+          <Footer />
         </NextAuthProvider>
       </body>
     </html>
