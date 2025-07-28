@@ -3,24 +3,23 @@ import { Scale, Shield, Clock, Users } from 'lucide-react'
 
 export default function Home() {
   return (
-    <div 
-      className="min-h-screen relative"
-      style={{
-        background: `linear-gradient(135deg, 
-          rgba(30, 58, 138, 0.3) 0%, 
-          rgba(59, 130, 246, 0.2) 25%, 
-          rgba(147, 197, 253, 0.3) 50%, 
-          rgba(219, 234, 254, 0.4) 75%, 
-          rgba(255, 255, 255, 0.8) 100%), 
-          url('https://images.pexels.com/photos/2110951/pexels-photo-2110951.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2')`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat',
-        backgroundAttachment: 'fixed'
-      }}
-    >
+    <div className="min-h-screen relative">
       {/* Hero Section */}
-      <section className="pt-20 pb-16 px-4">
+      <section 
+        className="pt-20 pb-16 px-4 relative"
+        style={{
+          background: `linear-gradient(135deg, 
+            rgba(30, 58, 138, 0.3) 0%, 
+            rgba(59, 130, 246, 0.2) 25%, 
+            rgba(147, 197, 253, 0.3) 50%, 
+            rgba(219, 234, 254, 0.4) 75%, 
+            rgba(255, 255, 255, 0.8) 100%), 
+            url('https://images.pexels.com/photos/2110951/pexels-photo-2110951.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2')`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat'
+        }}
+      >
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <h1 className="text-5xl font-bold text-gray-900 mb-6">
@@ -59,8 +58,12 @@ export default function Home() {
             </div>
             <PDFGenerator />
           </div>
+        </div>
+      </section>
 
-          {/* Process Steps */}
+      {/* Process Steps */}
+      <section className="bg-white py-16 px-4">
+        <div className="max-w-7xl mx-auto">
           <div className="grid md:grid-cols-4 gap-8 mb-16">
             <div className="text-center">
               <div className="bg-blue-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
