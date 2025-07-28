@@ -74,7 +74,7 @@ export default function SignUp() {
         const data = await response.json()
         setError(data.error || 'Une erreur est survenue lors de l\'inscription')
       }
-    } catch (error) {
+    } catch {
       setError('Une erreur est survenue lors de l\'inscription')
     } finally {
       setIsLoading(false)

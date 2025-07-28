@@ -48,7 +48,7 @@ export default function NewCase() {
         const data = await response.json()
         setError(data.error || 'Erreur lors de la création du dossier')
       }
-    } catch (error) {
+    } catch {
       setError('Erreur lors de la création du dossier')
     } finally {
       setIsLoading(false)
