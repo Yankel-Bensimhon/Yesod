@@ -15,13 +15,13 @@ export default function Home() {
     <div className="min-h-screen relative">
       {/* Hero Section */}
       <section 
-        className="pt-20 pb-16 px-4 relative bg-cover bg-center bg-no-repeat"
+        className="pt-20 pb-16 px-4 relative bg-cover bg-center bg-no-repeat min-h-[600px]"
         style={{
-          backgroundImage: "url('https://images.pexels.com/photos/32494950/pexels-photo-32494950/free-photo-of-cour-du-musee-du-louvre-et-pyramide-de-verre-la-nuit.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1')"
+          backgroundImage: "url('https://images.pexels.com/photos/32494950/pexels-photo-32494950.jpeg?auto=compress&cs=tinysrgb&w=1920')"
         }}
       >
-        {/* Semi-transparent overlay pour la lisibilité */}
-        <div className="absolute inset-0 bg-black bg-opacity-40"></div>
+        {/* Overlay très léger pour la lisibilité sans masquer l'image */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-black/30"></div>
         
         <div className="max-w-7xl mx-auto relative z-10">
           <div className="text-center mb-16">
