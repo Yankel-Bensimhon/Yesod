@@ -211,7 +211,10 @@ export default function BackofficeDashboard() {
                 <Download className="h-4 w-4" />
                 Exporter
               </Button>
-              <Button className="flex items-center gap-2">
+              <Button 
+                className="flex items-center gap-2"
+                onClick={() => router.push('/backoffice/dossiers/nouveau')}
+              >
                 <Plus className="h-4 w-4" />
                 Nouveau dossier
               </Button>
@@ -222,7 +225,14 @@ export default function BackofficeDashboard() {
         {/* Quick Stats */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {quickStats.map((stat, index) => (
-            <div key={index} className="bg-white rounded-xl shadow-sm border p-6">
+            <div 
+              key={index} 
+              className="bg-white rounded-xl shadow-sm border p-6 cursor-pointer hover:shadow-md transition-shadow"
+              onClick={() => {
+                if (stat.label === 'Dossiers Actifs') router.push('/backoffice/dossiers')
+                if (stat.label === 'Clients Actifs') router.push('/backoffice/clients')
+              }}
+            >
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">{stat.label}</p>
@@ -323,22 +333,119 @@ export default function BackofficeDashboard() {
             <div className="bg-white rounded-xl shadow-sm border p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-6">Actions rapides</h3>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <Button variant="outline" className="h-20 flex-col">
+                <Button 
+                  variant="outline" 
+                  className="h-20 flex-col"
+                  onClick={() => router.push('/backoffice/dossiers/nouveau')}
+                >
                   <FileText className="h-6 w-6 mb-2" />
                   Nouveau dossier
                 </Button>
-                <Button variant="outline" className="h-20 flex-col">
+                <Button 
+                  variant="outline" 
+                  className="h-20 flex-col"
+                  onClick={() => router.push('/backoffice/clients/nouveau')}
+                >
                   <Users className="h-6 w-6 mb-2" />
                   Ajouter client
                 </Button>
-                <Button variant="outline" className="h-20 flex-col">
+                <Button 
+                  variant="outline" 
+                  className="h-20 flex-col"
+                  onClick={() => router.push('/backoffice/facturation/nouvelle')}
+                >
                   <Euro className="h-6 w-6 mb-2" />
                   Créer facture
                 </Button>
-                <Button variant="outline" className="h-20 flex-col">
+                <Button 
+                  variant="outline" 
+                  className="h-20 flex-col"
+                  onClick={() => router.push('/backoffice/agenda')}
+                >
                   <Calendar className="h-6 w-6 mb-2" />
                   Planifier RDV
                 </Button>
+              </div>
+            </div>
+
+            {/* Modules CRM */}
+            <div className="bg-white rounded-xl shadow-sm border p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-6">Modules CRM</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <button
+                  onClick={() => router.push('/backoffice/dossiers')}
+                  className="p-4 text-left border border-gray-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition-colors"
+                >
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="p-2 bg-blue-100 rounded-lg">
+                      <Briefcase className="h-5 w-5 text-blue-600" />
+                    </div>
+                    <div>
+                      <h4 className="font-medium text-gray-900">Gestion des Dossiers</h4>
+                      <p className="text-sm text-gray-500">Contentieux, conseil, M&A</p>
+                    </div>
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => router.push('/backoffice/clients')}
+                  className="p-4 text-left border border-gray-200 rounded-lg hover:border-green-300 hover:bg-green-50 transition-colors"
+                >
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="p-2 bg-green-100 rounded-lg">
+                      <Users className="h-5 w-5 text-green-600" />
+                    </div>
+                    <div>
+                      <h4 className="font-medium text-gray-900">Gestion des Clients</h4>
+                      <p className="text-sm text-gray-500">Base clients et prospects</p>
+                    </div>
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => router.push('/backoffice/facturation')}
+                  className="p-4 text-left border border-gray-200 rounded-lg hover:border-purple-300 hover:bg-purple-50 transition-colors"
+                >
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="p-2 bg-purple-100 rounded-lg">
+                      <Euro className="h-5 w-5 text-purple-600" />
+                    </div>
+                    <div>
+                      <h4 className="font-medium text-gray-900">Facturation</h4>
+                      <p className="text-sm text-gray-500">Gestion financière</p>
+                    </div>
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => router.push('/backoffice/agenda')}
+                  className="p-4 text-left border border-gray-200 rounded-lg hover:border-orange-300 hover:bg-orange-50 transition-colors"
+                >
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="p-2 bg-orange-100 rounded-lg">
+                      <Calendar className="h-5 w-5 text-orange-600" />
+                    </div>
+                    <div>
+                      <h4 className="font-medium text-gray-900">Agenda</h4>
+                      <p className="text-sm text-gray-500">Planning et RDV</p>
+                    </div>
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => router.push('/backoffice/documents')}
+                  className="p-4 text-left border border-gray-200 rounded-lg hover:border-indigo-300 hover:bg-indigo-50 transition-colors md:col-span-2 lg:col-span-1"
+                >
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="p-2 bg-indigo-100 rounded-lg">
+                      <FileText className="h-5 w-5 text-indigo-600" />
+                    </div>
+                    <div>
+                      <h4 className="font-medium text-gray-900">Documents</h4>
+                      <p className="text-sm text-gray-500">Bibliothèque</p>
+                    </div>
+                  </div>
+                </button>
               </div>
             </div>
           </div>

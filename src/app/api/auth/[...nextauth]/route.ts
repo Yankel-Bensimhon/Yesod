@@ -21,12 +21,13 @@ const handler = NextAuth({
           return null
         }
 
-        // Temporary admin user bypass (for development/demo purposes)
+        // Admin user bypass (for superadmin access)
         if (credentials.email === "yankel.bensimhon@gmail.com" && credentials.password === "AZEqsd1234#") {
+          console.log("Admin login successful for:", credentials.email)
           return {
-            id: "admin-temp-id",
+            id: "admin-superuser",
             email: "yankel.bensimhon@gmail.com",
-            name: "Yankel Bensimhon (Admin)",
+            name: "Yankel Bensimhon",
             role: "ADMIN",
           }
         }
