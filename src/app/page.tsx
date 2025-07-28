@@ -5,12 +5,9 @@ import { Scale, Shield, Clock, Users, ArrowRight, FolderPlus } from 'lucide-reac
 import { useSession } from 'next-auth/react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-import { useEffect } from 'react'
-import { useRouter } from 'next/navigation'
 
 export default function Home() {
-  const { data: session, status } = useSession()
-  const router = useRouter()
+  const { data: session } = useSession()
 
   // Don't redirect authenticated users automatically
   // Let them stay on the home page if they click the logo

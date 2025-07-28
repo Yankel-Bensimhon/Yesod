@@ -30,7 +30,7 @@ export default function CommentCaMarche() {
             </h1>
             <p className="text-xl md:text-2xl text-blue-100 max-w-3xl mx-auto mb-8">
               Découvrez notre processus de recouvrement professionnel, 
-              de la relance amiable jusqu'à l'exécution forcée
+              de la relance amiable jusqu&apos;à l&apos;exécution forcée
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link href="/auth/signin">
@@ -71,7 +71,7 @@ export default function CommentCaMarche() {
                 <h3 className="text-xl font-bold text-gray-900 mb-4">Relance Amiable</h3>
                 <p className="text-gray-600 mb-6">
                   Nous contactons votre débiteur par courrier recommandé et appels téléphoniques 
-                  pour tenter une résolution à l'amiable dans les meilleurs délais.
+                  pour tenter une résolution à l&apos;amiable dans les meilleurs délais.
                 </p>
                 <div className="space-y-2">
                   <div className="flex items-center text-sm text-gray-500">
@@ -111,7 +111,7 @@ export default function CommentCaMarche() {
                   </div>
                   <div className="flex items-center text-sm text-gray-500">
                     <FileText className="h-4 w-4 mr-2" />
-                    Acte d'huissier
+                    Acte d&apos;huissier
                   </div>
                   <div className="flex items-center text-sm text-gray-500">
                     <Clock className="h-4 w-4 mr-2" />
@@ -163,8 +163,8 @@ export default function CommentCaMarche() {
                 </div>
                 <h3 className="text-xl font-bold text-gray-900 mb-4">Exécution Forcée</h3>
                 <p className="text-gray-600 mb-6">
-                  Si nécessaire, nous procédons aux saisies et mesures d'exécution 
-                  pour récupérer vos créances avec l'aide d'huissiers de justice.
+                  Si nécessaire, nous procédons aux saisies et mesures d&apos;exécution 
+                  pour récupérer vos créances avec l&apos;aide d&apos;huissiers de justice.
                 </p>
                 <div className="space-y-2">
                   <div className="flex items-center text-sm text-gray-500">
@@ -206,8 +206,8 @@ export default function CommentCaMarche() {
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-4">Expertise Juridique</h3>
               <p className="text-gray-600 mb-4">
-                Cabinet d'avocats spécialisé en droit des affaires et recouvrement. 
-                Plus de 15 ans d'expérience dans le secteur.
+                Cabinet d&apos;avocats spécialisé en droit des affaires et recouvrement. 
+                Plus de 15 ans d&apos;expérience dans le secteur.
               </p>
               <ul className="space-y-2 text-sm text-gray-500">
                 <li className="flex items-center">
@@ -256,7 +256,7 @@ export default function CommentCaMarche() {
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-4">Accompagnement Complet</h3>
               <p className="text-gray-600 mb-4">
-                De la création du dossier jusqu'au recouvrement final. 
+                De la création du dossier jusqu&apos;au recouvrement final. 
                 Interface digitale moderne et équipe dédiée.
               </p>
               <ul className="space-y-2 text-sm text-gray-500">
@@ -310,20 +310,20 @@ export default function CommentCaMarche() {
 
             <div className="bg-gray-50 rounded-xl p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-3">
-                Que se passe-t-il si le débiteur n'a pas de biens saisissables ?
+                Que se passe-t-il si le débiteur n&apos;a pas de biens saisissables ?
               </h3>
               <p className="text-gray-600">
-                Nous effectuons systématiquement des recherches patrimoniales avant d'engager 
-                les procédures d'exécution. Notre expertise nous permet d'identifier les actifs saisissables.
+                Nous effectuons systématiquement des recherches patrimoniales avant d&apos;engager 
+                les procédures d&apos;exécution. Notre expertise nous permet d&apos;identifier les actifs saisissables.
               </p>
             </div>
 
             <div className="bg-gray-50 rounded-xl p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-3">
-                Puis-je suivre l'avancement de mon dossier ?
+                Puis-je suivre l&apos;avancement de mon dossier ?
               </h3>
               <p className="text-gray-600">
-                Absolument. Notre plateforme vous permet de suivre en temps réel l'état de vos dossiers, 
+                Absolument. Notre plateforme vous permet de suivre en temps réel l&apos;état de vos dossiers, 
                 les actions menées et les échéances importantes.
               </p>
             </div>

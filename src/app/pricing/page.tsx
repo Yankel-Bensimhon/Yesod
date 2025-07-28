@@ -9,7 +9,6 @@ import {
   ArrowRight,
   Calculator,
   Shield,
-  Clock,
   Phone,
   Mail,
   FileText
@@ -32,7 +31,7 @@ export default function Pricing() {
         annual: 39
       },
       features: [
-        "Jusqu'à 10 dossiers/mois",
+        "Jusqu&apos;à 10 dossiers/mois",
         "Relances amiables automatisées",
         "Mise en demeure standard",
         "Interface web intuitive",
@@ -41,7 +40,7 @@ export default function Pricing() {
         "Conformité RGPD"
       ],
       limitations: [
-        "Pas d'injonction de payer",
+        "Pas d&apos;injonction de payer",
         "Pas de recherches patrimoniales"
       ],
       popular: false
@@ -56,11 +55,11 @@ export default function Pricing() {
         annual: 119
       },
       features: [
-        "Jusqu'à 50 dossiers/mois",
+        "Jusqu&apos;à 50 dossiers/mois",
         "Toutes les fonctionnalités Starter",
         "Injonctions de payer incluses",
         "Recherches patrimoniales",
-        "Actes d'huissier",
+        "Actes d&apos;huissier",
         "Support téléphonique prioritaire",
         "Gestionnaire de compte dédié",
         "Rapports avancés et analytics",
@@ -81,7 +80,7 @@ export default function Pricing() {
       features: [
         "Dossiers illimités",
         "Toutes les fonctionnalités Professional",
-        "Procédures d'exécution forcée",
+        "Procédures d&apos;exécution forcée",
         "Saisies mobilières et immobilières",
         "Équipe juridique dédiée",
         "Support 24/7",
@@ -129,7 +128,7 @@ export default function Pricing() {
           </h1>
           <p className="text-xl md:text-2xl text-blue-100 max-w-3xl mx-auto mb-8">
             Choisissez la formule qui correspond à vos besoins. 
-            Pas de frais cachés, pas d'engagement minimum.
+            Pas de frais cachés, pas d&apos;engagement minimum.
           </p>
           
           {/* Toggle Billing */}
@@ -270,7 +269,7 @@ export default function Pricing() {
                 <ul className="space-y-3 text-gray-600">
                   <li className="flex items-start">
                     <Check className="h-5 w-5 text-green-500 mr-3 mt-0.5" />
-                    Aucun frais d'ouverture de dossier
+                    Aucun frais d&apos;ouverture de dossier
                   </li>
                   <li className="flex items-start">
                     <Check className="h-5 w-5 text-green-500 mr-3 mt-0.5" />
@@ -349,7 +348,7 @@ export default function Pricing() {
               <div className="flex items-center justify-center w-16 h-16 bg-purple-100 text-purple-600 rounded-full mb-6">
                 <FileText className="h-8 w-8" />
               </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-4">Rédaction d'actes</h3>
+              <h3 className="text-xl font-bold text-gray-900 mb-4">Rédaction d&apos;actes</h3>
               <p className="text-gray-600 mb-6">
                 Mise en demeure personnalisée et actes juridiques 
                 sur mesure par nos avocats.
@@ -386,7 +385,7 @@ export default function Pricing() {
           <div className="space-y-8">
             <div className="bg-gray-50 rounded-xl p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-3">
-                Puis-je changer de formule en cours d'abonnement ?
+                Puis-je changer de formule en cours d&apos;abonnement ?
               </h3>
               <p className="text-gray-600">
                 Oui, vous pouvez upgrader ou downgrader votre formule à tout moment. 
@@ -406,20 +405,20 @@ export default function Pricing() {
 
             <div className="bg-gray-50 rounded-xl p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-3">
-                Les frais d'huissier sont-ils inclus ?
+                Les frais d&apos;huissier sont-ils inclus ?
               </h3>
               <p className="text-gray-600">
-                Les frais d'huissier et de tribunal sont facturés séparément selon 
-                les tarifs officiels. Nous vous informons à l'avance de tous les coûts.
+                Les frais d&apos;huissier et de tribunal sont facturés séparément selon 
+                les tarifs officiels. Nous vous informons à l&apos;avance de tous les coûts.
               </p>
             </div>
 
             <div className="bg-gray-50 rounded-xl p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-3">
-                Proposez-vous une période d'essai ?
+                Proposez-vous une période d&apos;essai ?
               </h3>
               <p className="text-gray-600">
-                Oui, nous offrons 14 jours d'essai gratuit sur toutes nos formules. 
+                Oui, nous offrons 14 jours d&apos;essai gratuit sur toutes nos formules. 
                 Aucune carte bancaire requise pour commencer.
               </p>
             </div>
@@ -434,12 +433,12 @@ export default function Pricing() {
             Prêt à commencer ?
           </h2>
           <p className="text-xl text-blue-100 mb-8">
-            Choisissez votre formule et récupérez vos premières créances dès aujourd'hui
+            Choisissez votre formule et récupérez vos premières créances dès aujourd&apos;hui
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/auth/signin">
               <Button size="lg" className="bg-white text-blue-600 hover:bg-gray-100">
-                Commencer l'essai gratuit
+                Commencer l&apos;essai gratuit
               </Button>
             </Link>
             <Button variant="outline" size="lg" className="border-white text-white hover:bg-white hover:text-blue-600">
