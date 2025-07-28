@@ -4,408 +4,446 @@ import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
+import React from 'react'
 import { 
   BarChart3,
   FileText,
-  AlertTriangle,
+  Users,
   Clock,
-  CheckCircle,
   Euro,
   Calendar,
-  Filter,
-  Search,
+  AlertTriangle,
+  Briefcase,
+  ArrowUpRight,
+  ArrowDownRight,
   Plus,
-  Download,
-  MessageSquare,
-  Eye
+  Eye,
+  Download
 } from 'lucide-react'
 
-interface Case {
-  id: string
-  title: string
-  debtorName: string
-  amount: number
-  currency: string
-  status: string
-  createdAt: string
-  dueDate?: string
-  user?: {
-    name: string
-    email: string
-    company?: string
-  }
-  _count?: {
-    actions: number
-    documents: number
-    messages: number
-  }
+interface DashboardStats {
+  totalCases: number
+  activeCases: number
+  pendingCases: number
+  closedCases: number
+  totalRevenue: number
+  monthlyRevenue: number
+  pendingInvoices: number
+  overdueInvoices: number
+  totalClients: number
+  activeClients: number
+  newClientsThisMonth: number
+  upcomingDeadlines: number
 }
 
-export default function Backoffice() {
+interface RecentActivity {
+  id: string
+  type: 'case' | 'client' | 'invoice' | 'deadline'
+  title: string
+  description: string
+  date: string
+  status: string
+  amount?: number
+}
+
+interface QuickStats {
+  label: string
+  value: string | number
+  change: number
+  trend: 'up' | 'down' | 'stable'
+  icon: React.ComponentType<{ className?: string }>
+  color: string
+}
+
+export default function BackofficeDashboard() {
   const { data: session, status } = useSession()
   const router = useRouter()
-  const [cases, setCases] = useState<Case[]>([])
   const [loading, setLoading] = useState(true)
-  const [filterStatus, setFilterStatus] = useState('ALL')
-  const [searchTerm, setSearchTerm] = useState('')
+  const [dashboardStats, setDashboardStats] = useState<DashboardStats>({
+    totalCases: 0,
+    activeCases: 0,
+    pendingCases: 0,
+    closedCases: 0,
+    totalRevenue: 0,
+    monthlyRevenue: 0,
+    pendingInvoices: 0,
+    overdueInvoices: 0,
+    totalClients: 0,
+    activeClients: 0,
+    newClientsThisMonth: 0,
+    upcomingDeadlines: 0
+  })
+  const [recentActivity, setRecentActivity] = useState<RecentActivity[]>([])
 
+  // Mock data pour la démonstration
   useEffect(() => {
     if (status === 'loading') return
-    
+
     if (!session) {
       router.push('/auth/signin')
       return
     }
 
-    // Check if user is lawyer or admin
-    if (session.user?.role !== 'LAWYER' && session.user?.role !== 'ADMIN') {
-      router.push('/dashboard')
-      return
-    }
+    // Simulation du chargement des données
+    setTimeout(() => {
+      setDashboardStats({
+        totalCases: 87,
+        activeCases: 34,
+        pendingCases: 12,
+        closedCases: 41,
+        totalRevenue: 245000,
+        monthlyRevenue: 42000,
+        pendingInvoices: 8,
+        overdueInvoices: 3,
+        totalClients: 45,
+        activeClients: 32,
+        newClientsThisMonth: 6,
+        upcomingDeadlines: 9
+      })
 
-    // Fetch all cases for lawyers
-    fetchCases()
+      setRecentActivity([
+        {
+          id: '1',
+          type: 'case',
+          title: 'Nouveau dossier contentieux',
+          description: 'SAS TECHNO vs SUPPLIER CORP - Rupture contrat',
+          date: '2025-01-28',
+          status: 'nouveau'
+        },
+        {
+          id: '2',
+          type: 'invoice',
+          title: 'Facture émise',
+          description: 'Conseil juridique - INNOV SA',
+          date: '2025-01-27',
+          status: 'envoyée',
+          amount: 3500
+        },
+        {
+          id: '3',
+          type: 'deadline',
+          title: 'Échéance procédure',
+          description: 'Dépôt conclusions - Tribunal Commerce',
+          date: '2025-01-30',
+          status: 'urgent'
+        },
+        {
+          id: '4',
+          type: 'client',
+          title: 'Nouveau client',
+          description: 'DIGITAL SOLUTIONS SARL',
+          date: '2025-01-26',
+          status: 'actif'
+        }
+      ])
+
+      setLoading(false)
+    }, 1000)
   }, [session, status, router])
 
-  const fetchCases = async () => {
-    try {
-      const response = await fetch('/api/cases')
-      if (response.ok) {
-        const data = await response.json()
-        setCases(data)
-      }
-    } catch (error) {
-      console.error('Error fetching cases:', error)
-    } finally {
-      setLoading(false)
+  const quickStats: QuickStats[] = [
+    {
+      label: 'Dossiers Actifs',
+      value: dashboardStats.activeCases,
+      change: 12,
+      trend: 'up',
+      icon: Briefcase,
+      color: 'text-blue-600'
+    },
+    {
+      label: 'CA Mensuel',
+      value: `${dashboardStats.monthlyRevenue.toLocaleString()}€`,
+      change: 8.5,
+      trend: 'up',
+      icon: Euro,
+      color: 'text-green-600'
+    },
+    {
+      label: 'Clients Actifs',
+      value: dashboardStats.activeClients,
+      change: -2,
+      trend: 'down',
+      icon: Users,
+      color: 'text-purple-600'
+    },
+    {
+      label: 'Échéances',
+      value: dashboardStats.upcomingDeadlines,
+      change: 0,
+      trend: 'stable',
+      icon: Clock,
+      color: 'text-orange-600'
     }
-  }
+  ]
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'OPEN': return 'bg-blue-100 text-blue-800'
-      case 'IN_PROGRESS': return 'bg-yellow-100 text-yellow-800'
-      case 'RESOLVED': return 'bg-green-100 text-green-800'
-      case 'CLOSED': return 'bg-gray-100 text-gray-800'
-      case 'CANCELLED': return 'bg-red-100 text-red-800'
-      default: return 'bg-gray-100 text-gray-800'
-    }
-  }
-
-  const getStatusText = (status: string) => {
-    switch (status) {
-      case 'OPEN': return 'Ouvert'
-      case 'IN_PROGRESS': return 'En cours'
-      case 'RESOLVED': return 'Résolu'
-      case 'CLOSED': return 'Fermé'
-      case 'CANCELLED': return 'Annulé'
-      default: return status
-    }
-  }
-
-  const getPriorityColor = (dueDate?: string, status?: string) => {
-    if (status === 'RESOLVED' || status === 'CLOSED') return 'text-gray-400'
-    
-    if (!dueDate) return 'text-gray-400'
-    
-    const due = new Date(dueDate)
-    const now = new Date()
-    const diffDays = Math.ceil((due.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
-    
-    if (diffDays < 0) return 'text-red-600' // Overdue
-    if (diffDays <= 7) return 'text-orange-600' // Due soon
-    return 'text-green-600' // On time
-  }
-
-  if (status === 'loading' || loading) {
+  if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Chargement du dashboard...</p>
+        </div>
       </div>
     )
   }
 
-  const filteredCases = cases.filter(case_ => {
-    const matchesStatus = filterStatus === 'ALL' || case_.status === filterStatus
-    const matchesSearch = !searchTerm || 
-      case_.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      case_.debtorName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      case_.user?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      case_.user?.company?.toLowerCase().includes(searchTerm.toLowerCase())
-    
-    return matchesStatus && matchesSearch
-  })
-
-  const stats = {
-    total: cases.length,
-    open: cases.filter(c => c.status === 'OPEN').length,
-    inProgress: cases.filter(c => c.status === 'IN_PROGRESS').length,
-    resolved: cases.filter(c => c.status === 'RESOLVED').length,
-    totalAmount: cases.reduce((sum, c) => sum + c.amount, 0),
-    overdue: cases.filter(c => {
-      if (!c.dueDate || c.status === 'RESOLVED' || c.status === 'CLOSED') return false
-      return new Date(c.dueDate) < new Date()
-    }).length
-  }
-
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">
-          <div className="flex justify-between items-center">
+          <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold text-gray-900">
-                Backoffice Avocat
+                Cabinet Bensimhon - Back Office
               </h1>
               <p className="text-gray-600 mt-1">
-                Gestion complète des dossiers de recouvrement
+                Tableau de bord de gestion - {new Date().toLocaleDateString('fr-FR', { 
+                  weekday: 'long', 
+                  year: 'numeric', 
+                  month: 'long', 
+                  day: 'numeric' 
+                })}
               </p>
             </div>
-            <div className="flex space-x-3">
-              <Button variant="outline" size="lg">
-                <Download className="h-5 w-5 mr-2" />
-                Export
+            <div className="flex gap-3">
+              <Button variant="outline" className="flex items-center gap-2">
+                <Download className="h-4 w-4" />
+                Exporter
               </Button>
-              <Button size="lg">
-                <Plus className="h-5 w-5 mr-2" />
+              <Button className="flex items-center gap-2">
+                <Plus className="h-4 w-4" />
                 Nouveau dossier
               </Button>
             </div>
           </div>
         </div>
 
-        {/* Stats Dashboard */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-6 mb-8">
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center">
-              <BarChart3 className="h-8 w-8 text-blue-600" />
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Total dossiers</p>
-                <p className="text-2xl font-semibold text-gray-900">{stats.total}</p>
+        {/* Quick Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          {quickStats.map((stat, index) => (
+            <div key={index} className="bg-white rounded-xl shadow-sm border p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">{stat.label}</p>
+                  <p className="text-2xl font-bold text-gray-900 mt-1">{stat.value}</p>
+                </div>
+                <div className={`p-3 rounded-lg bg-gray-50 ${stat.color}`}>
+                  <stat.icon className="h-6 w-6" />
+                </div>
+              </div>
+              <div className="flex items-center mt-4">
+                {stat.trend === 'up' && (
+                  <ArrowUpRight className="h-4 w-4 text-green-500 mr-1" />
+                )}
+                {stat.trend === 'down' && (
+                  <ArrowDownRight className="h-4 w-4 text-red-500 mr-1" />
+                )}
+                <span className={`text-sm font-medium ${
+                  stat.trend === 'up' ? 'text-green-600' : 
+                  stat.trend === 'down' ? 'text-red-600' : 'text-gray-600'
+                }`}>
+                  {stat.trend === 'stable' ? 'Stable' : `${stat.change > 0 ? '+' : ''}${stat.change}%`}
+                </span>
+                <span className="text-sm text-gray-500 ml-1">vs mois dernier</span>
               </div>
             </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center">
-              <Clock className="h-8 w-8 text-blue-600" />
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Nouveaux</p>
-                <p className="text-2xl font-semibold text-gray-900">{stats.open}</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center">
-              <Calendar className="h-8 w-8 text-yellow-600" />
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">En cours</p>
-                <p className="text-2xl font-semibold text-gray-900">{stats.inProgress}</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center">
-              <CheckCircle className="h-8 w-8 text-green-600" />
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Résolus</p>
-                <p className="text-2xl font-semibold text-gray-900">{stats.resolved}</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center">
-              <AlertTriangle className="h-8 w-8 text-red-600" />
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">En retard</p>
-                <p className="text-2xl font-semibold text-gray-900">{stats.overdue}</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center">
-              <Euro className="h-8 w-8 text-green-600" />
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Montant total</p>
-                <p className="text-xl font-semibold text-gray-900">
-                  {new Intl.NumberFormat('fr-FR', {
-                    style: 'currency',
-                    currency: 'EUR',
-                    notation: 'compact'
-                  }).format(stats.totalAmount)}
-                </p>
-              </div>
-            </div>
-          </div>
+          ))}
         </div>
 
-        {/* Filters and Search */}
-        <div className="bg-white rounded-lg shadow mb-6 p-6">
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="flex-1">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                <input
-                  type="text"
-                  placeholder="Rechercher par débiteur, client, entreprise..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                />
-              </div>
-            </div>
-            
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-2">
-                <Filter className="h-5 w-5 text-gray-400" />
-                <select
-                  value={filterStatus}
-                  onChange={(e) => setFilterStatus(e.target.value)}
-                  className="border border-gray-300 rounded-md px-3 py-2 focus:ring-blue-500 focus:border-blue-500"
-                >
-                  <option value="ALL">Tous les statuts</option>
-                  <option value="OPEN">Nouveaux</option>
-                  <option value="IN_PROGRESS">En cours</option>
-                  <option value="RESOLVED">Résolus</option>
-                  <option value="CLOSED">Fermés</option>
-                  <option value="CANCELLED">Annulés</option>
-                </select>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Cases Table */}
-        <div className="bg-white shadow rounded-lg overflow-hidden">
-          <div className="px-6 py-4 border-b border-gray-200">
-            <h2 className="text-lg font-medium text-gray-900">
-              Dossiers ({filteredCases.length})
-            </h2>
-          </div>
+        {/* Main Dashboard Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           
-          {filteredCases.length === 0 ? (
-            <div className="text-center py-12">
-              <FileText className="mx-auto h-12 w-12 text-gray-400" />
-              <h3 className="mt-2 text-sm font-medium text-gray-900">
-                {searchTerm || filterStatus !== 'ALL' ? 'Aucun dossier trouvé' : 'Aucun dossier'}
-              </h3>
-              <p className="mt-1 text-sm text-gray-500">
-                {searchTerm || filterStatus !== 'ALL' 
-                  ? 'Essayez de modifier vos critères de recherche' 
-                  : 'Les nouveaux dossiers apparaîtront ici'
-                }
-              </p>
+          {/* Left Column - Overview Cards */}
+          <div className="lg:col-span-2 space-y-6">
+            
+            {/* Dossiers Overview */}
+            <div className="bg-white rounded-xl shadow-sm border p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-lg font-semibold text-gray-900">Vue d&apos;ensemble des dossiers</h3>
+                <Button variant="outline" size="sm">
+                  <Eye className="h-4 w-4 mr-2" />
+                  Voir tout
+                </Button>
+              </div>
+              
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="text-center p-4 bg-blue-50 rounded-lg">
+                  <div className="text-2xl font-bold text-blue-600">{dashboardStats.totalCases}</div>
+                  <div className="text-sm text-blue-600">Total</div>
+                </div>
+                <div className="text-center p-4 bg-green-50 rounded-lg">
+                  <div className="text-2xl font-bold text-green-600">{dashboardStats.activeCases}</div>
+                  <div className="text-sm text-green-600">Actifs</div>
+                </div>
+                <div className="text-center p-4 bg-yellow-50 rounded-lg">
+                  <div className="text-2xl font-bold text-yellow-600">{dashboardStats.pendingCases}</div>
+                  <div className="text-sm text-yellow-600">En attente</div>
+                </div>
+                <div className="text-center p-4 bg-gray-50 rounded-lg">
+                  <div className="text-2xl font-bold text-gray-600">{dashboardStats.closedCases}</div>
+                  <div className="text-sm text-gray-600">Clos</div>
+                </div>
+              </div>
             </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Dossier
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Client
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Débiteur
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Montant
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Statut
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Échéance
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Activité
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {filteredCases.map((case_) => (
-                    <tr key={case_.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div>
-                          <div className="text-sm font-medium text-gray-900">
-                            {case_.title}
-                          </div>
-                          <div className="text-sm text-gray-500">#{case_.id.slice(-8)}</div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div>
-                          <div className="text-sm font-medium text-gray-900">
-                            {case_.user?.name || 'N/A'}
-                          </div>
-                          <div className="text-sm text-gray-500">
-                            {case_.user?.company || case_.user?.email}
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {case_.debtorName}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {new Intl.NumberFormat('fr-FR', {
-                          style: 'currency',
-                          currency: case_.currency
-                        }).format(case_.amount)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(case_.status)}`}>
-                          {getStatusText(case_.status)}
+
+            {/* Financial Overview */}
+            <div className="bg-white rounded-xl shadow-sm border p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-lg font-semibold text-gray-900">Situation financière</h3>
+                <Button variant="outline" size="sm">
+                  <BarChart3 className="h-4 w-4 mr-2" />
+                  Détails
+                </Button>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-green-600">
+                    {dashboardStats.totalRevenue.toLocaleString()}€
+                  </div>
+                  <div className="text-sm text-gray-500">CA Total</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-blue-600">
+                    {dashboardStats.pendingInvoices}
+                  </div>
+                  <div className="text-sm text-gray-500">Factures en attente</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-red-600">
+                    {dashboardStats.overdueInvoices}
+                  </div>
+                  <div className="text-sm text-gray-500">Factures en retard</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Quick Actions */}
+            <div className="bg-white rounded-xl shadow-sm border p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-6">Actions rapides</h3>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <Button variant="outline" className="h-20 flex-col">
+                  <FileText className="h-6 w-6 mb-2" />
+                  Nouveau dossier
+                </Button>
+                <Button variant="outline" className="h-20 flex-col">
+                  <Users className="h-6 w-6 mb-2" />
+                  Ajouter client
+                </Button>
+                <Button variant="outline" className="h-20 flex-col">
+                  <Euro className="h-6 w-6 mb-2" />
+                  Créer facture
+                </Button>
+                <Button variant="outline" className="h-20 flex-col">
+                  <Calendar className="h-6 w-6 mb-2" />
+                  Planifier RDV
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          {/* Right Column - Activity & Alerts */}
+          <div className="space-y-6">
+            
+            {/* Recent Activity */}
+            <div className="bg-white rounded-xl shadow-sm border p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-6">Activité récente</h3>
+              <div className="space-y-4">
+                {recentActivity.map((activity) => (
+                  <div key={activity.id} className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
+                    <div className={`p-2 rounded-full ${
+                      activity.type === 'case' ? 'bg-blue-100 text-blue-600' :
+                      activity.type === 'invoice' ? 'bg-green-100 text-green-600' :
+                      activity.type === 'deadline' ? 'bg-red-100 text-red-600' :
+                      'bg-purple-100 text-purple-600'
+                    }`}>
+                      {activity.type === 'case' && <Briefcase className="h-4 w-4" />}
+                      {activity.type === 'invoice' && <Euro className="h-4 w-4" />}
+                      {activity.type === 'deadline' && <Clock className="h-4 w-4" />}
+                      {activity.type === 'client' && <Users className="h-4 w-4" />}
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-medium text-gray-900 text-sm">{activity.title}</p>
+                      <p className="text-gray-600 text-xs">{activity.description}</p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className="text-xs text-gray-500">
+                          {new Date(activity.date).toLocaleDateString('fr-FR')}
                         </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        {case_.dueDate ? (
-                          <div className={`text-sm ${getPriorityColor(case_.dueDate, case_.status)}`}>
-                            {new Date(case_.dueDate).toLocaleDateString('fr-FR')}
-                          </div>
-                        ) : (
-                          <span className="text-gray-400 text-sm">-</span>
+                        {activity.amount && (
+                          <span className="text-xs font-medium text-green-600">
+                            {activity.amount.toLocaleString()}€
+                          </span>
                         )}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex space-x-3 text-sm text-gray-500">
-                          <span title="Actions">{case_._count?.actions || 0}</span>
-                          <span title="Documents">{case_._count?.documents || 0}</span>
-                          <span title="Messages">{case_._count?.messages || 0}</span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <div className="flex space-x-2">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => router.push(`/backoffice/cases/${case_.id}`)}
-                          >
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                          <Button variant="ghost" size="sm">
-                            <MessageSquare className="h-4 w-4" />
-                          </Button>
-                          <Button variant="ghost" size="sm">
-                            <Download className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
-          )}
+
+            {/* Alerts & Deadlines */}
+            <div className="bg-white rounded-xl shadow-sm border p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-6">Alertes & Échéances</h3>
+              <div className="space-y-3">
+                <div className="flex items-center gap-3 p-3 bg-red-50 border border-red-200 rounded-lg">
+                  <AlertTriangle className="h-5 w-5 text-red-500" />
+                  <div>
+                    <p className="font-medium text-red-900 text-sm">3 factures en retard</p>
+                    <p className="text-red-700 text-xs">Relance nécessaire</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                  <Clock className="h-5 w-5 text-yellow-500" />
+                  <div>
+                    <p className="font-medium text-yellow-900 text-sm">Audience demain</p>
+                    <p className="text-yellow-700 text-xs">Tribunal de Commerce</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                  <Calendar className="h-5 w-5 text-blue-500" />
+                  <div>
+                    <p className="font-medium text-blue-900 text-sm">RDV client</p>
+                    <p className="text-blue-700 text-xs">Vendredi 14h - INNOV SA</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Performance Indicators */}
+            <div className="bg-white rounded-xl shadow-sm border p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-6">Indicateurs</h3>
+              <div className="space-y-4">
+                <div>
+                  <div className="flex justify-between text-sm mb-2">
+                    <span className="text-gray-600">Taux de recouvrement</span>
+                    <span className="font-medium">87%</span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div className="bg-green-600 h-2 rounded-full" style={{ width: '87%' }}></div>
+                  </div>
+                </div>
+                <div>
+                  <div className="flex justify-between text-sm mb-2">
+                    <span className="text-gray-600">Délai moyen règlement</span>
+                    <span className="font-medium">42 jours</span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div className="bg-blue-600 h-2 rounded-full" style={{ width: '65%' }}></div>
+                  </div>
+                </div>
+                <div>
+                  <div className="flex justify-between text-sm mb-2">
+                    <span className="text-gray-600">Satisfaction client</span>
+                    <span className="font-medium">94%</span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div className="bg-purple-600 h-2 rounded-full" style={{ width: '94%' }}></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
