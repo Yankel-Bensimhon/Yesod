@@ -70,18 +70,34 @@ export default function Blog() {
   })
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        {/* Header */}
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">
-            Blog Yesod
-          </h1>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Découvrez nos conseils d&apos;experts, les dernières actualités juridiques 
-            et les innovations dans le domaine du recouvrement de créances.
-          </p>
+    <div className="min-h-screen">
+      {/* Hero Section with Background Image */}
+      <div 
+        className="relative bg-cover bg-center bg-no-repeat"
+        style={{
+          backgroundImage: "url('https://images.pexels.com/photos/32494950/pexels-photo-32494950/free-photo-of-cour-du-musee-du-louvre-et-pyramide-de-verre-la-nuit.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1')"
+        }}
+      >
+        {/* Dark overlay for text readability */}
+        <div className="absolute inset-0 bg-black bg-opacity-60"></div>
+        
+        {/* Header Content */}
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
+          <div className="text-center mb-12">
+            <h1 className="text-5xl font-bold text-white mb-6 drop-shadow-lg">
+              Blog Yesod
+            </h1>
+            <p className="text-xl text-gray-100 max-w-3xl mx-auto drop-shadow-md">
+              Découvrez nos conseils d&apos;experts, les dernières actualités juridiques 
+              et les innovations dans le domaine du recouvrement de créances.
+            </p>
+          </div>
         </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
 
         {/* Search and Filter */}
         <div className="mb-8 flex flex-col sm:flex-row gap-4 justify-between items-center">
@@ -175,6 +191,7 @@ export default function Blog() {
             <button className="bg-white text-blue-600 px-6 py-2 rounded-lg font-medium hover:bg-gray-100 transition-colors">
               S&apos;abonner
             </button>
+          </div>
           </div>
         </div>
       </div>
