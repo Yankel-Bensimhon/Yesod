@@ -18,7 +18,7 @@ export default function Navbar() {
             <Link href="/" className="flex items-center space-x-2">
               <Scale className="h-8 w-8 text-blue-600" />
               <span className="text-xl font-bold text-gray-900">
-                Cabinet Yesod
+                Yesod
               </span>
             </Link>
           </div>

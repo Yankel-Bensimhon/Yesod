@@ -7,12 +7,15 @@ export default function Home() {
       className="min-h-screen relative"
       style={{
         background: `linear-gradient(135deg, 
-          rgba(30, 58, 138, 0.1) 0%, 
-          rgba(59, 130, 246, 0.05) 25%, 
-          rgba(147, 197, 253, 0.1) 50%, 
-          rgba(219, 234, 254, 0.2) 75%, 
-          rgba(255, 255, 255, 0.9) 100%), 
-          linear-gradient(45deg, #f8fafc 0%, #e2e8f0 100%)`,
+          rgba(30, 58, 138, 0.3) 0%, 
+          rgba(59, 130, 246, 0.2) 25%, 
+          rgba(147, 197, 253, 0.3) 50%, 
+          rgba(219, 234, 254, 0.4) 75%, 
+          rgba(255, 255, 255, 0.8) 100%), 
+          url('https://images.pexels.com/photos/2110951/pexels-photo-2110951.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2')`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
         backgroundAttachment: 'fixed'
       }}
     >
