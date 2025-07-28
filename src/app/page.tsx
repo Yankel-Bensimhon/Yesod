@@ -15,41 +15,35 @@ export default function Home() {
     <div className="min-h-screen relative">
       {/* Hero Section */}
       <section 
-        className="pt-20 pb-16 px-4 relative"
+        className="pt-20 pb-16 px-4 relative bg-cover bg-center bg-no-repeat"
         style={{
-          background: `linear-gradient(135deg, 
-            rgba(0, 0, 0, 0.7) 0%, 
-            rgba(30, 58, 138, 0.8) 25%, 
-            rgba(59, 130, 246, 0.7) 50%, 
-            rgba(147, 197, 253, 0.8) 75%, 
-            rgba(255, 255, 255, 0.9) 100%), 
-            url('https://images.pexels.com/photos/33131515/pexels-photo-33131515.jpeg')`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat'
+          backgroundImage: "url('https://images.pexels.com/photos/32494950/pexels-photo-32494950/free-photo-of-cour-du-musee-du-louvre-et-pyramide-de-verre-la-nuit.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1')"
         }}
       >
-        <div className="max-w-7xl mx-auto">
+        {/* Semi-transparent overlay pour la lisibilité */}
+        <div className="absolute inset-0 bg-black bg-opacity-40"></div>
+        
+        <div className="max-w-7xl mx-auto relative z-10">
           <div className="text-center mb-16">
-            <h1 className="text-5xl font-bold text-gray-900 mb-6">
+            <h1 className="text-5xl font-bold text-white mb-6 drop-shadow-lg">
               Recouvrement de Créances
-              <span className="text-blue-600 block">Professionnel & Efficace</span>
+              <span className="text-blue-300 block">Professionnel & Efficace</span>
             </h1>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-8">
+            <p className="text-xl text-gray-100 max-w-3xl mx-auto mb-8 drop-shadow-md">
               Plateforme SaaS spécialisée dans le recouvrement amiable et judiciaire.
               Pilotée par notre cabinet d&apos;avocats d&apos;affaires, dédiée aux TPE/PME.
             </p>
-            <div className="flex flex-wrap justify-center gap-8 text-sm text-gray-500 mb-8">
+            <div className="flex flex-wrap justify-center gap-8 text-sm text-gray-200 mb-8 drop-shadow-sm">
               <div className="flex items-center gap-2">
-                <Shield className="h-5 w-5 text-blue-600" />
+                <Shield className="h-5 w-5 text-blue-300" />
                 <span>Sécurisation juridique</span>
               </div>
               <div className="flex items-center gap-2">
-                <Clock className="h-5 w-5 text-blue-600" />
+                <Clock className="h-5 w-5 text-blue-300" />
                 <span>Procédures rapides</span>
               </div>
               <div className="flex items-center gap-2">
-                <Users className="h-5 w-5 text-blue-600" />
+                <Users className="h-5 w-5 text-blue-300" />
                 <span>Suivi personnalisé</span>
               </div>
             </div>
