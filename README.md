@@ -70,32 +70,40 @@ Cabinet Yesod est une plateforme SaaS moderne spécialisée dans le recouvrement
 - Docker et Docker Compose
 - npm ou yarn
 
-### Installation
+### Installation Rapide
 
 ```bash
 # Cloner le repository
 git clone https://github.com/Yankel-Bensimhon/Yesod.git
 cd Yesod
 
-# Installer les dépendances
+# Installation automatique (recommandé)
 npm install
+npm run setup
 
-# Configurer les variables d'environnement
+# OU installation manuelle
+npm install
 cp .env.example .env.local
 # Éditer .env.local avec vos valeurs
-
-# Démarrer PostgreSQL avec Docker
 docker-compose up -d postgres
-
-# Générer le client Prisma
 npx prisma generate
-
-# Appliquer les migrations
 npx prisma db push
-
-# Démarrer le serveur de développement
 npm run dev
 ```
+
+### Scripts Disponibles
+
+- `npm run setup` - Script de configuration automatique
+- `npm run validate-env` - Valide votre configuration
+- `npm run dev` - Démarre le serveur de développement
+- `npm run build` - Build de production
+- `npm run lint` - Vérification du code
+
+### Guides de Configuration
+
+📚 **Guides détaillés disponibles :**
+- [Guide de Configuration Complète](./CONFIGURATION_GUIDE.md) - Configuration step-by-step
+- [Configuration d'Authentification](./AUTHENTICATION_SETUP.md) - Setup NextAuth et OAuth
 
 ### Variables d'Environnement
 
