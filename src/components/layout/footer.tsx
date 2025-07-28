@@ -7,7 +7,7 @@ export default function Footer() {
         <div className="flex flex-col md:flex-row justify-between items-center">
           <div className="mb-4 md:mb-0">
             <p className="text-sm text-gray-300">
-              © 2024 Yesod. Tous droits réservés.
+              © 2025 Yesod - Service de recouvrement de créances professionnelles opéré par le Cabinet d&apos;Avocat Yankel Bensimhon, Inscrit au Barreau de Paris - 43 Avenue Foch 75116 Paris
             </p>
           </div>
           <div className="flex flex-wrap gap-6">
@@ -34,6 +34,12 @@ export default function Footer() {
               className="text-sm text-gray-300 hover:text-white transition-colors"
             >
               CGV
+            </Link>
+            <Link 
+              href="/livre-blanc" 
+              className="text-sm text-gray-300 hover:text-white transition-colors"
+            >
+              Gratuit: Livre Blanc: Les Secrets du Recouvrement de Créances
             </Link>
           </div>
         </div>
