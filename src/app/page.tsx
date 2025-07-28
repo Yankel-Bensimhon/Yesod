@@ -3,7 +3,19 @@ import { Scale, Shield, Clock, Users } from 'lucide-react'
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white">
+    <div 
+      className="min-h-screen relative"
+      style={{
+        background: `linear-gradient(135deg, 
+          rgba(30, 58, 138, 0.1) 0%, 
+          rgba(59, 130, 246, 0.05) 25%, 
+          rgba(147, 197, 253, 0.1) 50%, 
+          rgba(219, 234, 254, 0.2) 75%, 
+          rgba(255, 255, 255, 0.9) 100%), 
+          linear-gradient(45deg, #f8fafc 0%, #e2e8f0 100%)`,
+        backgroundAttachment: 'fixed'
+      }}
+    >
       {/* Hero Section */}
       <section className="pt-20 pb-16 px-4">
         <div className="max-w-7xl mx-auto">
