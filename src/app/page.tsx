@@ -1,7 +1,19 @@
+'use client'
+
 import PDFGenerator from '@/components/pdf-generator'
-import { Scale, Shield, Clock, Users } from 'lucide-react'
+import { Scale, Shield, Clock, Users, ArrowRight, FolderPlus } from 'lucide-react'
+import { useSession } from 'next-auth/react'
+import Link from 'next/link'
+import { Button } from '@/components/ui/button'
+import { useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 
 export default function Home() {
+  const { data: session, status } = useSession()
+  const router = useRouter()
+
+  // Don't redirect authenticated users automatically
+  // Let them stay on the home page if they click the logo
   return (
     <div className="min-h-screen relative">
       {/* Hero Section */}
@@ -9,12 +21,12 @@ export default function Home() {
         className="pt-20 pb-16 px-4 relative"
         style={{
           background: `linear-gradient(135deg, 
-            rgba(30, 58, 138, 0.3) 0%, 
-            rgba(59, 130, 246, 0.2) 25%, 
-            rgba(147, 197, 253, 0.3) 50%, 
-            rgba(219, 234, 254, 0.4) 75%, 
-            rgba(255, 255, 255, 0.8) 100%), 
-            url('https://images.pexels.com/photos/2110951/pexels-photo-2110951.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2')`,
+            rgba(0, 0, 0, 0.7) 0%, 
+            rgba(30, 58, 138, 0.8) 25%, 
+            rgba(59, 130, 246, 0.7) 50%, 
+            rgba(147, 197, 253, 0.8) 75%, 
+            rgba(255, 255, 255, 0.9) 100%), 
+            url('https://images.pexels.com/photos/33131515/pexels-photo-33131515.jpeg')`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundRepeat: 'no-repeat'
@@ -30,7 +42,7 @@ export default function Home() {
               Plateforme SaaS spécialisée dans le recouvrement amiable et judiciaire.
               Pilotée par notre cabinet d&apos;avocats d&apos;affaires, dédiée aux TPE/PME.
             </p>
-            <div className="flex flex-wrap justify-center gap-8 text-sm text-gray-500">
+            <div className="flex flex-wrap justify-center gap-8 text-sm text-gray-500 mb-8">
               <div className="flex items-center gap-2">
                 <Shield className="h-5 w-5 text-blue-600" />
                 <span>Sécurisation juridique</span>
@@ -43,6 +55,43 @@ export default function Home() {
                 <Users className="h-5 w-5 text-blue-600" />
                 <span>Suivi personnalisé</span>
               </div>
+            </div>
+
+            {/* Call to Action - different for authenticated vs non-authenticated users */}
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+              {session ? (
+                // For authenticated users
+                <>
+                  <Link href="/dashboard">
+                    <Button size="lg" className="px-8 py-3 text-lg">
+                      <FolderPlus className="h-5 w-5 mr-2" />
+                      Accéder à mes dossiers
+                    </Button>
+                  </Link>
+                  <Link href="/dashboard/new-case">
+                    <Button variant="outline" size="lg" className="px-8 py-3 text-lg">
+                      Créer un nouveau dossier
+                      <ArrowRight className="h-5 w-5 ml-2" />
+                    </Button>
+                  </Link>
+                </>
+              ) : (
+                // For non-authenticated users
+                <>
+                  <Link href="/auth/signin">
+                    <Button size="lg" className="px-8 py-3 text-lg">
+                      <FolderPlus className="h-5 w-5 mr-2" />
+                      Accéder à mes dossiers
+                    </Button>
+                  </Link>
+                  <Link href="/auth/signup">
+                    <Button variant="outline" size="lg" className="px-8 py-3 text-lg">
+                      Créer un compte
+                      <ArrowRight className="h-5 w-5 ml-2" />
+                    </Button>
+                  </Link>
+                </>
+              )}
             </div>
           </div>
 
