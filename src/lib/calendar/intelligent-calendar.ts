@@ -130,9 +130,9 @@ export class IntelligentCalendarService {
           caseId: event.caseId,
           clientId: event.clientId,
           assignedUserId: event.assignedUserId,
-          reminders: event.reminders,
-          recurrence: event.recurrence,
-          metadata: event.metadata
+          reminders: JSON.parse(JSON.stringify(event.reminders)), // Sérialisation JSON
+          recurrence: event.recurrence ? JSON.parse(JSON.stringify(event.recurrence)) : null,
+          metadata: event.metadata ? JSON.parse(JSON.stringify(event.metadata)) : null
         }
       });
 
@@ -295,7 +295,20 @@ export class IntelligentCalendarService {
       });
 
       for (const event of eventsWithReminders) {
-        for (const reminder of (event.reminders as EventReminder[])) {
+        // Deserialiser les reminders depuis JSON
+        let reminders: EventReminder[] = [];
+        try {
+          if (event.reminders && Array.isArray(event.reminders)) {
+            reminders = event.reminders as unknown as EventReminder[];
+          } else if (typeof event.reminders === 'string') {
+            reminders = JSON.parse(event.reminders);
+          }
+        } catch (error) {
+          console.warn(`Erreur parsing reminders pour événement ${event.id}:`, error);
+          continue;
+        }
+
+        for (const reminder of reminders) {
           if (!reminder.isActive) continue;
 
           const triggerTime = new Date(event.startDate.getTime() - reminder.triggerBefore * 60 * 1000);
@@ -319,7 +332,7 @@ export class IntelligentCalendarService {
     try {
       const caseData = await prisma.case.findUnique({
         where: { id: caseId },
-        include: { client: true, debtor: true }
+        include: { client: true }
       });
 
       if (!caseData) {
@@ -332,13 +345,13 @@ export class IntelligentCalendarService {
       // Événement : Premier contact client (J+1)
       const clientContactDate = new Date(now.getTime() + 24 * 60 * 60 * 1000);
       const clientContactEvent = await this.createEvent({
-        title: `Contact initial - ${caseData.client.name}`,
-        description: `Premier contact avec le client pour le dossier ${caseData.reference}`,
+        title: `Contact initial - ${caseData.client?.name || caseData.debtorName}`,
+        description: `Premier contact avec le client pour le dossier ${caseData.title}`,
         type: 'CALL',
         startDate: clientContactDate,
         endDate: new Date(clientContactDate.getTime() + 30 * 60 * 1000),
         caseId: caseData.id,
-        clientId: caseData.clientId,
+        clientId: caseData.clientId || undefined,
         priority: 'HIGH',
         reminders: [
           {
@@ -355,8 +368,8 @@ export class IntelligentCalendarService {
       // Événement : Relance débiteur (J+7)
       const debtorFollowupDate = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
       const debtorFollowupEvent = await this.createEvent({
-        title: `Relance débiteur - ${caseData.debtor.name}`,
-        description: `Première relance du débiteur pour le dossier ${caseData.reference}`,
+        title: `Relance débiteur - ${caseData.debtorName}`,
+        description: `Première relance du débiteur pour le dossier ${caseData.title}`,
         type: 'CALL',
         startDate: debtorFollowupDate,
         endDate: new Date(debtorFollowupDate.getTime() + 20 * 60 * 1000),
@@ -376,13 +389,13 @@ export class IntelligentCalendarService {
       // Événement : Point client (J+15)
       const clientUpdateDate = new Date(now.getTime() + 15 * 24 * 60 * 60 * 1000);
       const clientUpdateEvent = await this.createEvent({
-        title: `Point d'avancement - ${caseData.client.name}`,
-        description: `Présentation des premiers résultats du dossier ${caseData.reference}`,
+        title: `Point d'avancement - ${caseData.client?.name || caseData.debtorName}`,
+        description: `Présentation des premiers résultats du dossier ${caseData.title}`,
         type: 'MEETING',
         startDate: clientUpdateDate,
         endDate: new Date(clientUpdateDate.getTime() + 45 * 60 * 1000),
         caseId: caseData.id,
-        clientId: caseData.clientId,
+        clientId: caseData.clientId || undefined,
         priority: 'MEDIUM'
       });
       events.push(clientUpdateEvent);
@@ -391,7 +404,7 @@ export class IntelligentCalendarService {
       const procedureDeadlineDate = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
       const procedureDeadlineEvent = await this.createEvent({
         title: `DEADLINE - Procédure contentieuse`,
-        description: `Décision pour engagement procédure contentieuse - ${caseData.reference}`,
+        description: `Décision pour engagement procédure contentieuse - ${caseData.title}`,
         type: 'DEADLINE',
         startDate: procedureDeadlineDate,
         endDate: new Date(procedureDeadlineDate.getTime() + 15 * 60 * 1000),
@@ -415,7 +428,7 @@ export class IntelligentCalendarService {
       });
       events.push(procedureDeadlineEvent);
 
-      console.log(`📅 ${events.length} événements automatiques créés pour le dossier ${caseData.reference}`);
+      console.log(`📅 ${events.length} événements automatiques créés pour le dossier ${caseData.title}`);
       return events;
 
     } catch (error) {
