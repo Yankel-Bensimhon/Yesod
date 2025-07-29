@@ -19,35 +19,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts';
-import { BusinessIntelligenceEngine } from '@/lib/analytics/business-intelligence';
-
-interface BusinessKPIs {
-  revenue: {
-    total: number;
-    growth: number;
-    trend: string;
-  };
-  cases: {
-    total: number;
-    success_rate: number;
-    avg_resolution_time: number;
-  };
-  financial: {
-    collected_amount: number;
-    pending_amount: number;
-    collection_rate: number;
-  };
-  client: {
-    total_clients: number;
-    active_clients: number;
-    satisfaction_score: number;
-  };
-  team: {
-    productivity_score: number;
-    avg_case_load: number;
-    performance_index: number;
-  };
-}
+import { BusinessIntelligenceEngine, BusinessKPIs } from '@/lib/analytics/business-intelligence';
 
 interface ChartData {
   name: string;
@@ -56,6 +28,7 @@ interface ChartData {
   cases?: number;
   revenue?: number;
   success_rate?: number;
+  fill?: string; // Pour les couleurs des graphiques en secteurs
 }
 
 const BusinessIntelligenceDashboard: React.FC = () => {
@@ -81,9 +54,15 @@ const BusinessIntelligenceDashboard: React.FC = () => {
       const kpiData = await biEngine.calculateBusinessKPIs();
       setKpis(kpiData);
 
-      // Générer les données de série temporelle
-      const timeData = await biEngine.generateTimeSeriesData(selectedPeriod);
-      setTimeSeriesData(timeData);
+      // Générer les données de série temporelle  
+      const timeData = await biEngine.generateTimeSeriesData('revenue', selectedPeriod);
+      // Convertir TimeSeriesData vers ChartData
+      const chartData: ChartData[] = timeData.map(item => ({
+        name: item.date,
+        value: item.value,
+        date: item.date
+      }));
+      setTimeSeriesData(chartData);
 
       // Données factices pour les graphiques (en production, récupérées via API)
       setCaseStatusData([
@@ -94,12 +73,12 @@ const BusinessIntelligenceDashboard: React.FC = () => {
       ]);
 
       setRevenueData([
-        { name: 'Jan', revenue: 65000, cases: 45 },
-        { name: 'Fév', revenue: 72000, cases: 52 },
-        { name: 'Mar', revenue: 68000, cases: 48 },
-        { name: 'Avr', revenue: 81000, cases: 58 },
-        { name: 'Mai', revenue: 89000, cases: 63 },
-        { name: 'Jun', revenue: 95000, cases: 67 },
+        { name: 'Jan', value: 65000, revenue: 65000, cases: 45 },
+        { name: 'Fév', value: 72000, revenue: 72000, cases: 52 },
+        { name: 'Mar', value: 68000, revenue: 68000, cases: 48 },
+        { name: 'Avr', value: 81000, revenue: 81000, cases: 58 },
+        { name: 'Mai', value: 89000, revenue: 89000, cases: 63 },
+        { name: 'Jun', value: 95000, revenue: 95000, cases: 67 },
       ]);
 
       setClientData([
@@ -193,10 +172,10 @@ const BusinessIntelligenceDashboard: React.FC = () => {
               <div>
                 <p className="text-gray-600 text-sm">Chiffre d'affaires</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  {formatCurrency(kpis.revenue.total)}
+                  {formatCurrency(kpis.totalRevenue)}
                 </p>
-                <p className={`text-sm ${kpis.revenue.growth >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                  {kpis.revenue.growth >= 0 ? '+' : ''}{formatPercentage(kpis.revenue.growth)}
+                <p className="text-sm text-gray-600">
+                  {formatCurrency(kpis.monthlyRecurringRevenue)}/mois
                 </p>
               </div>
               <div className="text-blue-600">
@@ -216,9 +195,9 @@ const BusinessIntelligenceDashboard: React.FC = () => {
             <div className="flex justify-between items-start">
               <div>
                 <p className="text-gray-600 text-sm">Dossiers actifs</p>
-                <p className="text-2xl font-bold text-gray-900">{kpis.cases.total}</p>
+                <p className="text-2xl font-bold text-gray-900">{kpis.activeCases}</p>
                 <p className="text-sm text-green-600">
-                  {formatPercentage(kpis.cases.success_rate)} de succès
+                  {formatPercentage(kpis.caseSuccessRate)} de succès
                 </p>
               </div>
               <div className="text-green-600">
@@ -239,10 +218,10 @@ const BusinessIntelligenceDashboard: React.FC = () => {
               <div>
                 <p className="text-gray-600 text-sm">Taux de recouvrement</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  {formatPercentage(kpis.financial.collection_rate)}
+                  {formatPercentage(kpis.collectionRate)}
                 </p>
                 <p className="text-sm text-gray-600">
-                  {formatCurrency(kpis.financial.collected_amount)} récupérés
+                  {formatCurrency(kpis.averageInvoiceValue)} facture moyenne
                 </p>
               </div>
               <div className="text-yellow-600">
@@ -263,9 +242,9 @@ const BusinessIntelligenceDashboard: React.FC = () => {
             <div className="flex justify-between items-start">
               <div>
                 <p className="text-gray-600 text-sm">Clients actifs</p>
-                <p className="text-2xl font-bold text-gray-900">{kpis.client.active_clients}</p>
+                <p className="text-2xl font-bold text-gray-900">{kpis.activeClients}</p>
                 <p className="text-sm text-green-600">
-                  {kpis.client.satisfaction_score}/5 satisfaction
+                  {kpis.clientSatisfactionScore}/5 satisfaction
                 </p>
               </div>
               <div className="text-purple-600">
@@ -318,7 +297,7 @@ const BusinessIntelligenceDashboard: React.FC = () => {
                 cx="50%"
                 cy="50%"
                 labelLine={false}
-                label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                label={({ name, percent }) => `${name} ${((percent || 0) * 100).toFixed(0)}%`}
                 outerRadius={80}
                 fill="#8884d8"
                 dataKey="value"
@@ -396,15 +375,15 @@ const BusinessIntelligenceDashboard: React.FC = () => {
               <div className="space-y-2">
                 <div className="flex justify-between">
                   <span className="text-gray-600">Score de productivité</span>
-                  <span className="font-medium">{kpis.team.productivity_score}/100</span>
+                  <span className="font-medium">{kpis.productivityScore}/100</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Charge moyenne</span>
-                  <span className="font-medium">{kpis.team.avg_case_load} dossiers</span>
+                  <span className="font-medium">{kpis.casePerLawyer} dossiers</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Indice de performance</span>
-                  <span className="font-medium">{kpis.team.performance_index}/10</span>
+                  <span className="text-gray-600">Revenu par avocat</span>
+                  <span className="font-medium">{formatCurrency(kpis.revenuePerLawyer)}</span>
                 </div>
               </div>
             </div>
@@ -414,11 +393,11 @@ const BusinessIntelligenceDashboard: React.FC = () => {
               <div className="space-y-2">
                 <div className="flex justify-between">
                   <span className="text-gray-600">Temps moyen</span>
-                  <span className="font-medium">{kpis.cases.avg_resolution_time} jours</span>
+                  <span className="font-medium">{kpis.averageResolutionTime} jours</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Taux de succès</span>
-                  <span className="font-medium">{formatPercentage(kpis.cases.success_rate)}</span>
+                  <span className="font-medium">{formatPercentage(kpis.caseSuccessRate)}</span>
                 </div>
               </div>
             </div>
@@ -427,12 +406,12 @@ const BusinessIntelligenceDashboard: React.FC = () => {
               <h4 className="font-medium text-gray-700 mb-2">Finances</h4>
               <div className="space-y-2">
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Montant en attente</span>
-                  <span className="font-medium">{formatCurrency(kpis.financial.pending_amount)}</span>
+                  <span className="text-gray-600">Valeur facture moyenne</span>
+                  <span className="font-medium">{formatCurrency(kpis.averageInvoiceValue)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Montant collecté</span>
-                  <span className="font-medium text-green-600">{formatCurrency(kpis.financial.collected_amount)}</span>
+                  <span className="text-gray-600">Revenu total</span>
+                  <span className="font-medium text-green-600">{formatCurrency(kpis.totalRevenue)}</span>
                 </div>
               </div>
             </div>
