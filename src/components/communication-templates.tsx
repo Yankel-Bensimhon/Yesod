@@ -155,7 +155,7 @@ Lien de paiement sécurisé : {{PAYMENT_LINK}}
   // Extraire les variables d'un contenu
   const extractVariables = (content: string): string[] => {
     const regex = /\{\{([^}]+)\}\}/g
-    const matches = []
+    const matches: string[] = []
     let match
     while ((match = regex.exec(content)) !== null) {
       if (!matches.includes(match[1])) {
