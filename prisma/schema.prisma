@@ -33,6 +33,15 @@ model User {
   // Relations
   cases         Case[]
   messages      Message[]
+  calendarEvents CalendarEvent[]
+  mobileSessions MobileSession[]
+  documentScans DocumentScan[]
+  
+  // Phase 4: Security & RGPD Relations
+  auditLogs     AuditLog[]
+  twoFactorAuth TwoFactorAuth?
+  consents      DataProcessingConsent[]
+  securityEvents SecurityEvent[]
 
   @@map("users")
 }
@@ -76,6 +85,32 @@ model VerificationToken {
   @@map("verification_tokens")
 }
 
+model Client {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  phone     String?
+  address   String?
+  company   String?
+  siret     String?
+  type      ClientType @default(INDIVIDUAL)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  cases          Case[]
+  invoices       Invoice[]
+  communications CommunicationLog[]
+  calendarEvents CalendarEvent[]
+  documents      Document[]
+  mobileAppointments MobileAppointment[]
+  
+  // Phase 4: RGPD Relations
+  consents       DataProcessingConsent[]
+
+  @@map("clients")
+}
+
 model Case {
   id          String     @id @default(cuid())
   title       String
@@ -98,10 +133,278 @@ model Case {
   userId     String
   user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
   actions    CaseAction[]
-  documents  Document[]
+  legacyDocuments  LegacyDocument[]
   messages   Message[]
+  
+  // Standard CRM relations
+  client            Client?          @relation(fields: [clientId], references: [id])
+  clientId          String?
+  invoices          Invoice[]
+  communications    CommunicationLog[]
+  calendarEvents    CalendarEvent[]
+  documents         Document[]
+  
+  // Phase 3 - Intelligence Relations
+  modelPredictions  ModelPrediction[]
+  aiRecommendations AIRecommendation[]
+  documentScans     DocumentScan[]
 
   @@map("cases")
+}
+
+// Business Intelligence
+model BusinessMetric {
+  id        String   @id @default(cuid())
+  name      String
+  value     Float
+  unit      String
+  category  String   // financial, operational, client, team
+  period    String   // day, week, month, quarter, year
+  date      DateTime
+  metadata  Json?
+  createdAt DateTime @default(now())
+
+  @@map("business_metrics")
+}
+
+model PredictiveModel {
+  id          String   @id @default(cuid())
+  name        String
+  type        String   // collection, duration, risk, amount
+  accuracy    Float
+  lastTrained DateTime
+  features    String[] // Array of feature names
+  performance Json     // Model performance metrics
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  predictions ModelPrediction[]
+
+  @@map("predictive_models")
+}
+
+model ModelPrediction {
+  id            String          @id @default(cuid())
+  modelId       String
+  caseId        String
+  prediction    Float
+  confidence    Float
+  factors       Json            // Scoring factors
+  createdAt     DateTime        @default(now())
+
+  model         PredictiveModel @relation(fields: [modelId], references: [id])
+  case          Case            @relation(fields: [caseId], references: [id])
+
+  @@map("model_predictions")
+}
+
+model AIRecommendation {
+  id              String   @id @default(cuid())
+  caseId          String
+  type            String   // action, strategy, timing, amount
+  priority        String   // high, medium, low
+  title           String
+  description     String
+  reasoning       String[] // Array of reasoning points
+  expectedImpact  Float
+  confidence      Float
+  suggestedActions String[]
+  deadline        DateTime?
+  status          String   @default("PENDING") // PENDING, ACCEPTED, REJECTED, COMPLETED
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  case            Case     @relation(fields: [caseId], references: [id])
+
+  @@map("ai_recommendations")
+}
+
+model Debtor {
+  id            String   @id @default(cuid())
+  name          String
+  email         String?
+  phone         String?
+  address       String?
+  companyName   String?
+  siret         String?  @unique
+  status        String   @default("active")
+  notes         String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  debtorProfile DebtorProfile?
+  
+  @@map("debtors")
+}
+
+model DebtorProfile {
+  id                  String   @id @default(cuid())
+  debtorId            String   @unique
+  riskCategory        String   // A, B, C, D
+  paymentBehavior     String   // excellent, good, average, poor, defaulter
+  financialStability  Float
+  communicationScore  Float
+  historicalPerformance Json   // Historical stats
+  predictedOutcomes   Json     // Predicted outcomes
+  lastUpdated         DateTime @default(now())
+  createdAt           DateTime @default(now())
+
+  debtor              Debtor   @relation(fields: [debtorId], references: [id])
+
+  @@map("debtor_profiles")
+}
+
+// Mobile Application
+model MobileSession {
+  id               String    @id @default(cuid())
+  userId           String
+  deviceId         String
+  deviceType       String    // ios, android, web
+  appVersion       String?
+  location         Json?     // Geolocation data
+  capabilities     Json      // Mobile capabilities
+  offlineActions   Json[]    // Offline action queue
+  lastSync         DateTime?
+  isActive         Boolean   @default(true)
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  user             User      @relation(fields: [userId], references: [id])
+  appointments     MobileAppointment[]
+
+  @@map("mobile_sessions")
+}
+
+model MobileAppointment {
+  id            String        @id @default(cuid())
+  sessionId     String
+  clientId      String
+  clientName    String
+  address       String
+  scheduledTime DateTime
+  duration      Int           // minutes
+  type          String        // meeting, visit, phone, video
+  status        String        // scheduled, in_progress, completed, cancelled
+  location      Json?         // Geolocation data
+  notes         String?
+  documents     String[]
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  session       MobileSession @relation(fields: [sessionId], references: [id])
+  client        Client        @relation(fields: [clientId], references: [id])
+
+  @@map("mobile_appointments")
+}
+
+model DocumentScan {
+  id          String   @id @default(cuid())
+  userId      String
+  type        String   // document, barcode, qr_code
+  content     String   @db.Text
+  confidence  Float
+  metadata    Json     // Size, format, quality
+  processed   Boolean  @default(false)
+  caseId      String?
+  createdAt   DateTime @default(now())
+
+  user        User     @relation(fields: [userId], references: [id])
+  case        Case?    @relation(fields: [caseId], references: [id])
+
+  @@map("document_scans")
+}
+
+// Legal Ecosystem Integration
+model CompanyData {
+  id              String   @id @default(cuid())
+  siret           String   @unique
+  siren           String
+  denomination    String
+  formeJuridique  String
+  adresseSiege    String
+  dateCreation    DateTime
+  capital         Float
+  effectif        Int?
+  activitePrincipale String
+  situationJuridique String // ACTIVE, CESSATION, LIQUIDATION
+  dirigeants      Json     // Array of dirigeants
+  lastUpdated     DateTime @default(now())
+  createdAt       DateTime @default(now())
+
+  creditScores    CreditScore[]
+  courtProcedures CourtProcedure[]
+
+  @@map("company_data")
+}
+
+model CreditScore {
+  id                  String      @id @default(cuid())
+  companyDataId       String
+  siren               String
+  score               Int
+  classe              String      // A+, A, B+, B, C+, C, D, E
+  probabiliteDefaut   Float
+  encours             Float
+  incidents           Json        // Array of incidents
+  recommandation      String
+  dateEvaluation      DateTime
+  createdAt           DateTime    @default(now())
+
+  companyData         CompanyData @relation(fields: [companyDataId], references: [id])
+
+  @@map("credit_scores")
+}
+
+model CourtProcedure {
+  id                  String      @id @default(cuid())
+  companyDataId       String?
+  tribunal            String
+  nature              String      // CIVILE, COMMERCIALE, ADMINISTRATIVE
+  type                String      // RECOUVREMENT, INJONCTION, PROCEDURE_COLLECTIVE
+  numeroRG            String      @unique
+  parties             Json        // Array of procedure parts
+  statut              String      // EN_COURS, TERMINEE, SUSPENDUE
+  dateOuverture       DateTime
+  prochaineDateAudience DateTime?
+  montantEnJeu        Float
+  createdAt           DateTime    @default(now())
+  updatedAt           DateTime    @updatedAt
+
+  companyData         CompanyData? @relation(fields: [companyDataId], references: [id])
+
+  @@map("court_procedures")
+}
+
+model BailiffPartner {
+  id            String   @id @default(cuid())
+  nom           String
+  etude         String
+  territoire    String[] // Array of postal codes
+  specialites   String[] // Array of specialties
+  tarifs        Json     // Pricing structure
+  contact       Json     // Contact information
+  disponibilite String   // DISPONIBLE, OCCUPE, INDISPONIBLE
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@map("bailiff_partners")
+}
+
+model AccountingSync {
+  id            String   @id @default(cuid())
+  software      String   // SAGE, CEGID, EBP, QUADRATUS, AUTRE
+  connected     Boolean  @default(false)
+  lastSync      DateTime?
+  syncedEntities Json    // Synced data counts
+  errors        String[] // Sync errors
+  configuration Json?    // Sync configuration
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@map("accounting_sync")
 }
 
 model CaseAction {
@@ -122,7 +425,7 @@ model CaseAction {
   @@map("case_actions")
 }
 
-model Document {
+model LegacyDocument {
   id        String       @id @default(cuid())
   title     String
   filename  String
@@ -137,7 +440,7 @@ model Document {
   caseId String
   case   Case   @relation(fields: [caseId], references: [id], onDelete: Cascade)
 
-  @@map("documents")
+  @@map("legacy_documents")
 }
 
 model Message {
@@ -201,4 +504,584 @@ enum MessageType {
   TEXT
   SYSTEM
   NOTIFICATION
+}
+
+// ===== PHASE 2 - CRM AVANCÉ =====
+
+// Facturation avancée
+model Invoice {
+  id           String   @id @default(cuid())
+  number       String   @unique
+  date         DateTime @default(now())
+  dueDate      DateTime
+  clientId     String
+  caseId       String?
+  items        Json     // InvoiceItem[]
+  subtotal     Float
+  vatAmount    Float
+  total        Float
+  status       InvoiceStatus @default(DRAFT)
+  paymentTerms Int      @default(30) // jours
+  notes        String?
+  metadata     Json?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relations
+  client       Client   @relation(fields: [clientId], references: [id])
+  case         Case?    @relation(fields: [caseId], references: [id])
+  payments     Payment[]
+  paymentPlan  PaymentPlan?
+
+  @@map("invoices")
+}
+
+model Payment {
+  id            String   @id @default(cuid())
+  invoiceId     String
+  amount        Float
+  paymentMethod String   @default("BANK_TRANSFER")
+  paymentDate   DateTime @default(now())
+  status        PaymentStatus @default(COMPLETED)
+  metadata      Json?
+  createdAt     DateTime @default(now())
+
+  // Relations
+  invoice       Invoice  @relation(fields: [invoiceId], references: [id])
+
+  @@map("payments")
+}
+
+model PaymentPlan {
+  id           String   @id @default(cuid())
+  invoiceId    String   @unique
+  installments Json     // { amount, dueDate, status, paidDate? }[]
+  totalAmount  Float
+  interestRate Float?
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relations
+  invoice      Invoice  @relation(fields: [invoiceId], references: [id])
+
+  @@map("payment_plans")
+}
+
+// Communication professionnelle
+model CommunicationLog {
+  id          String   @id @default(cuid())
+  type        CommunicationType
+  direction   CommunicationDirection
+  caseId      String?
+  clientId    String
+  subject     String?
+  content     String
+  status      CommunicationStatus
+  sentAt      DateTime @default(now())
+  deliveredAt DateTime?
+  metadata    Json?
+
+  // Relations
+  case        Case?    @relation(fields: [caseId], references: [id])
+  client      Client   @relation(fields: [clientId], references: [id])
+
+  @@map("communication_logs")
+}
+
+model CommunicationTemplate {
+  id        String   @id @default(cuid())
+  type      CommunicationType
+  name      String
+  content   Json     // { subject?, htmlContent?, textContent? } ou string pour SMS
+  variables String[] // Variables disponibles
+  category  TemplateCategory
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("communication_templates")
+}
+
+// Calendrier intelligent
+model CalendarEvent {
+  id             String   @id @default(cuid())
+  title          String
+  description    String?
+  type           EventType
+  startDate      DateTime
+  endDate        DateTime
+  location       String?
+  isAllDay       Boolean  @default(false)
+  status         EventStatus @default(SCHEDULED)
+  priority       EventPriority @default(MEDIUM)
+  caseId         String?
+  clientId       String?
+  assignedUserId String?
+  reminders      Json     // EventReminder[]
+  recurrence     Json?    // EventRecurrence
+  metadata       Json?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  // Relations
+  case           Case?    @relation(fields: [caseId], references: [id])
+  client         Client?  @relation(fields: [clientId], references: [id])
+  assignedUser   User?    @relation(fields: [assignedUserId], references: [id])
+
+  @@map("calendar_events")
+}
+
+// Gestion documentaire avancée
+model Document {
+  id                String   @id @default(cuid())
+  name              String
+  originalName      String
+  mimeType          String
+  size              Int
+  hash              String   @unique
+  category          DocumentCategory
+  tags              String[]
+  extractedData     Json?    // { text?, entities?, signatures? }
+  caseId            String?
+  clientId          String?
+  version           Int      @default(1)
+  parentDocumentId  String?
+  isConfidential    Boolean  @default(false)
+  accessLevel       AccessLevel @default(INTERNAL)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  archivedAt        DateTime?
+  storagePath       String
+  thumbnailPath     String?
+  status            DocumentStatus @default(PROCESSING)
+  metadata          Json?
+
+  // Relations
+  case              Case?    @relation(fields: [caseId], references: [id])
+  client            Client?  @relation(fields: [clientId], references: [id])
+  parentDocument    Document? @relation("DocumentVersions", fields: [parentDocumentId], references: [id])
+  childDocuments    Document[] @relation("DocumentVersions")
+  signatures        DigitalSignature[]
+
+  @@map("documents")
+}
+
+model DigitalSignature {
+  id            String   @id @default(cuid())
+  documentId    String
+  signerEmail   String
+  signerName    String
+  signedAt      DateTime?
+  status        SignatureStatus @default(PENDING)
+  signatureData String?  // Données cryptographiques
+  ipAddress     String?
+  userAgent     String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  document      Document @relation(fields: [documentId], references: [id])
+
+  @@map("digital_signatures")
+}
+
+// Enums pour Phase 2
+enum InvoiceStatus {
+  DRAFT
+  SENT
+  PAID
+  OVERDUE
+  CANCELLED
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+enum CommunicationType {
+  EMAIL
+  SMS
+  PHONE
+  LETTER
+}
+
+enum CommunicationDirection {
+  OUTBOUND
+  INBOUND
+}
+
+enum CommunicationStatus {
+  SENT
+  DELIVERED
+  FAILED
+  BOUNCED
+}
+
+enum TemplateCategory {
+  REMINDER
+  NOTICE
+  THANK_YOU
+  CONFIRMATION
+  CUSTOM
+}
+
+enum EventType {
+  APPOINTMENT
+  CALL
+  DEADLINE
+  REMINDER
+  COURT_HEARING
+  MEETING
+}
+
+enum EventStatus {
+  SCHEDULED
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+}
+
+enum EventPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum DocumentCategory {
+  CONTRACT
+  INVOICE
+  CORRESPONDENCE
+  LEGAL_DOCUMENT
+  PROOF
+  OTHER
+}
+
+enum AccessLevel {
+  PUBLIC
+  INTERNAL
+  RESTRICTED
+  CONFIDENTIAL
+}
+
+enum DocumentStatus {
+  PROCESSING
+  READY
+  ARCHIVED
+  DELETED
+}
+
+enum SignatureStatus {
+  PENDING
+  SIGNED
+  DECLINED
+  EXPIRED
+}
+
+enum ClientType {
+  INDIVIDUAL
+  COMPANY
+  ASSOCIATION
+}
+
+// =====================================
+// PHASE 4: SÉCURITÉ & CONFORMITÉ RGPD
+// =====================================
+
+// Audit Trail & Security Logging
+model AuditLog {
+  id           String   @id @default(cuid())
+  userId       String?  // Null for system actions
+  action       AuditAction
+  resource     String   // Table/entity affected
+  resourceId   String?  // ID of the affected resource
+  oldValues    Json?    // Previous values (for updates)
+  newValues    Json?    // New values (for creates/updates)
+  metadata     Json?    // Additional context (IP, user agent, etc.)
+  ipAddress    String?
+  userAgent    String?
+  sessionId    String?
+  timestamp    DateTime @default(now())
+  
+  user         User?    @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([action])
+  @@index([resource])
+  @@index([timestamp])
+  @@map("audit_logs")
+}
+
+// Two-Factor Authentication
+model TwoFactorAuth {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  isEnabled       Boolean  @default(false)
+  secret          String?  // TOTP secret (encrypted)
+  backupCodes     String[] // Recovery codes (hashed)
+  lastUsedAt      DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("two_factor_auth")
+}
+
+// SSO Configuration for Enterprises
+model SSOConfiguration {
+  id                String   @id @default(cuid())
+  domain            String   @unique // Company domain
+  provider          SSOProvider
+  isActive          Boolean  @default(false)
+  configuration     Json     // Provider-specific config
+  metadata          Json?    // Additional settings
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@map("sso_configurations")
+}
+
+// Data Encryption Registry
+model EncryptionKey {
+  id            String   @id @default(cuid())
+  keyName       String   @unique
+  algorithm     String   // AES-256, RSA-2048, etc.
+  purpose       String   // field-encryption, file-encryption, etc.
+  isActive      Boolean  @default(true)
+  rotatedAt     DateTime?
+  expiresAt     DateTime?
+  createdAt     DateTime @default(now())
+  
+  encryptedData EncryptedData[]
+
+  @@map("encryption_keys")
+}
+
+model EncryptedData {
+  id            String   @id @default(cuid())
+  keyId         String
+  tableName     String
+  fieldName     String
+  recordId      String
+  encryptedValue String  @db.Text
+  createdAt     DateTime @default(now())
+
+  key           EncryptionKey @relation(fields: [keyId], references: [id])
+
+  @@unique([tableName, fieldName, recordId])
+  @@index([tableName, recordId])
+  @@map("encrypted_data")
+}
+
+// RGPD Compliance Models
+model DataProcessingConsent {
+  id              String   @id @default(cuid())
+  userId          String?  // Can be null for anonymous tracking
+  clientId        String?  // For client data processing
+  purpose         String   // Marketing, analytics, legal, etc.
+  legalBasis      LegalBasis
+  isConsented     Boolean  @default(false)
+  consentDate     DateTime?
+  withdrawalDate  DateTime?
+  version         String   // Consent version
+  metadata        Json?    // Detailed consent settings
+  expiresAt       DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  user            User?    @relation(fields: [userId], references: [id])
+  client          Client?  @relation(fields: [clientId], references: [id])
+
+  @@index([userId])
+  @@index([clientId])
+  @@index([purpose])
+  @@map("data_processing_consents")
+}
+
+model DataRetentionPolicy {
+  id              String   @id @default(cuid())
+  tableName       String   @unique
+  retentionPeriod Int      // Days
+  anonymizationRules Json  // Rules for anonymization
+  deletionRules   Json     // Rules for deletion
+  isActive        Boolean  @default(true)
+  lastApplied     DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  schedules       DataRetentionSchedule[]
+
+  @@map("data_retention_policies")
+}
+
+model DataRetentionSchedule {
+  id          String   @id @default(cuid())
+  policyId    String
+  recordId    String   // ID of the record to process
+  scheduledAt DateTime // When to process
+  action      RetentionAction
+  isProcessed Boolean  @default(false)
+  processedAt DateTime?
+  createdAt   DateTime @default(now())
+
+  policy      DataRetentionPolicy @relation(fields: [policyId], references: [id])
+
+  @@index([scheduledAt, isProcessed])
+  @@map("data_retention_schedules")
+}
+
+model RightToErasureRequest {
+  id          String   @id @default(cuid())
+  requesterId String   // User or client requesting erasure
+  requesterType String // 'user' or 'client'
+  reason      String?
+  scope       Json     // What data to erase
+  status      ErasureStatus @default(PENDING)
+  requestedAt DateTime @default(now())
+  processedAt DateTime?
+  completedAt DateTime?
+  notes       String?
+
+  @@index([requesterId, requesterType])
+  @@index([status])
+  @@map("right_to_erasure_requests")
+}
+
+// Security Monitoring
+model SecurityEvent {
+  id           String   @id @default(cuid())
+  type         SecurityEventType
+  severity     SecuritySeverity
+  description  String
+  metadata     Json?    // Event details
+  source       String   // Source system/component
+  ipAddress    String?
+  userAgent    String?
+  userId       String?
+  isResolved   Boolean  @default(false)
+  resolvedAt   DateTime?
+  resolvedBy   String?
+  createdAt    DateTime @default(now())
+
+  user         User?    @relation(fields: [userId], references: [id])
+
+  @@index([type])
+  @@index([severity])
+  @@index([createdAt])
+  @@index([isResolved])
+  @@map("security_events")
+}
+
+model BackupLog {
+  id              String   @id @default(cuid())
+  type            BackupType
+  status          BackupStatus
+  size            BigInt?  // Backup size in bytes
+  location        String?  // Backup location/path
+  encryptionUsed  Boolean  @default(false)
+  checksumHash    String?  // File integrity verification
+  startedAt       DateTime @default(now())
+  completedAt     DateTime?
+  errorMessage    String?
+  metadata        Json?    // Additional backup details
+  
+  @@index([type])
+  @@index([status])
+  @@index([startedAt])
+  @@map("backup_logs")
+}
+
+// New enums for Phase 4
+enum AuditAction {
+  CREATE
+  READ
+  UPDATE
+  DELETE
+  LOGIN
+  LOGOUT
+  EXPORT
+  IMPORT
+  DOWNLOAD
+  SHARE
+  PERMISSION_CHANGE
+  PASSWORD_CHANGE
+  TWO_FA_ENABLE
+  TWO_FA_DISABLE
+  DATA_EXPORT
+  DATA_DELETION
+}
+
+enum SSOProvider {
+  SAML
+  OAUTH2
+  OIDC
+  LDAP
+  ACTIVE_DIRECTORY
+}
+
+enum LegalBasis {
+  CONSENT
+  CONTRACT
+  LEGAL_OBLIGATION
+  VITAL_INTERESTS
+  PUBLIC_TASK
+  LEGITIMATE_INTERESTS
+}
+
+enum RetentionAction {
+  ANONYMIZE
+  DELETE
+  ARCHIVE
+  NOTIFY
+}
+
+enum ErasureStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  REJECTED
+  PARTIAL
+}
+
+enum SecurityEventType {
+  LOGIN_ATTEMPT
+  LOGIN_FAILURE
+  PASSWORD_CHANGE
+  TWO_FA_BYPASS_ATTEMPT
+  UNAUTHORIZED_ACCESS
+  DATA_BREACH
+  SUSPICIOUS_ACTIVITY
+  MALWARE_DETECTION
+  PRIVILEGE_ESCALATION
+  DATA_EXPORT
+  MASSIVE_DOWNLOAD
+  API_ABUSE
+}
+
+enum SecuritySeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum BackupType {
+  FULL
+  INCREMENTAL
+  DIFFERENTIAL
+  DATABASE_ONLY
+  FILES_ONLY
+}
+
+enum BackupStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  FAILED
+  CORRUPTED
 }

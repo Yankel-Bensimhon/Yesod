@@ -1,0 +1,390 @@
+# CI/CD Pipeline Phase 1 - Tests et Déploiement Automatisé
+name: Yesod CRM - Phase 1 CI/CD
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  NODE_VERSION: '18'
+  POSTGRES_VERSION: '15'
+  REDIS_VERSION: '7'
+
+jobs:
+  # Job 1: Tests et qualité du code
+  test-and-quality:
+    name: Tests & Qualité Code
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: yesod_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+      
+      redis:
+        image: redis:7
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+    steps:
+    - name: 📦 Checkout du code
+      uses: actions/checkout@v4
+
+    - name: 🚀 Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+
+    - name: 📥 Installation des dépendances
+      run: npm ci
+
+    - name: 🔍 Vérification TypeScript
+      run: npm run type-check
+
+    - name: 🎨 Vérification ESLint
+      run: npm run lint
+
+    - name: 🧪 Tests unitaires avec couverture
+      run: npm run test:coverage
+      env:
+        DATABASE_URL: postgresql://postgres:postgres@localhost:5432/yesod_test
+        REDIS_URL: redis://localhost:6379
+        NODE_ENV: test
+
+    - name: 📊 Upload coverage vers Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage/lcov.info
+        flags: unittests
+        name: yesod-coverage
+
+    - name: 🔒 Audit de sécurité
+      run: npm audit --audit-level moderate
+
+    - name: 📈 Analyse de performance bundle
+      run: npm run analyze
+
+    - name: 💾 Cache des résultats de test
+      uses: actions/cache@v3
+      with:
+        path: |
+          .next/cache
+          node_modules/.cache
+        key: ${{ runner.os }}-nextjs-${{ hashFiles('package-lock.json') }}
+
+  # Job 2: Tests d'intégration
+  integration-tests:
+    name: Tests d'Intégration
+    runs-on: ubuntu-latest
+    needs: test-and-quality
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: yesod_integration
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+      
+      redis:
+        image: redis:7
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+    steps:
+    - name: 📦 Checkout du code
+      uses: actions/checkout@v4
+
+    - name: 🚀 Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+
+    - name: 📥 Installation des dépendances
+      run: npm ci
+
+    - name: 🗄️ Setup de la base de données
+      run: |
+        npm run db:migrate
+        npm run db:seed
+      env:
+        DATABASE_URL: postgresql://postgres:postgres@localhost:5432/yesod_integration
+
+    - name: 🧪 Tests d'intégration API
+      run: npm run test:integration
+      env:
+        DATABASE_URL: postgresql://postgres:postgres@localhost:5432/yesod_integration
+        REDIS_URL: redis://localhost:6379
+        NODE_ENV: test
+
+    - name: 🔍 Tests E2E avec Playwright
+      run: |
+        npx playwright install chromium
+        npm run test:e2e
+      env:
+        DATABASE_URL: postgresql://postgres:postgres@localhost:5432/yesod_integration
+        REDIS_URL: redis://localhost:6379
+
+  # Job 3: Build et optimisation
+  build-and-optimize:
+    name: Build & Optimisation
+    runs-on: ubuntu-latest
+    needs: test-and-quality
+
+    steps:
+    - name: 📦 Checkout du code
+      uses: actions/checkout@v4
+
+    - name: 🚀 Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+
+    - name: 📥 Installation des dépendances
+      run: npm ci
+
+    - name: 🏗️ Build de production
+      run: npm run build
+      env:
+        NODE_ENV: production
+
+    - name: 📦 Compression des assets
+      run: |
+        tar -czf build-artifacts.tar.gz .next
+        
+    - name: 💾 Upload des artefacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: build-artifacts
+        path: build-artifacts.tar.gz
+        retention-days: 7
+
+    - name: 📊 Analyse de la taille du bundle
+      run: |
+        npx bundlesize
+        npm run bundle-analyzer
+
+  # Job 4: Déploiement staging (sur develop)
+  deploy-staging:
+    name: Déploiement Staging
+    runs-on: ubuntu-latest
+    needs: [test-and-quality, integration-tests, build-and-optimize]
+    if: github.ref == 'refs/heads/develop'
+    environment: staging
+
+    steps:
+    - name: 📦 Checkout du code
+      uses: actions/checkout@v4
+
+    - name: 💾 Download des artefacts
+      uses: actions/download-artifact@v3
+      with:
+        name: build-artifacts
+
+    - name: 📦 Extraction des artefacts
+      run: tar -xzf build-artifacts.tar.gz
+
+    - name: 🚀 Déploiement vers Vercel Staging
+      uses: amondnet/vercel-action@v25
+      with:
+        vercel-token: ${{ secrets.VERCEL_TOKEN }}
+        vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+        vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+        scope: ${{ secrets.VERCEL_ORG_ID }}
+        alias-domains: staging.yesod-crm.com
+
+    - name: 🔍 Tests de smoke sur staging
+      run: |
+        npm run test:smoke -- --baseUrl https://staging.yesod-crm.com
+        
+    - name: 📢 Notification Slack staging
+      uses: 8398a7/action-slack@v3
+      with:
+        status: ${{ job.status }}
+        channel: '#deployments'
+        text: '🚀 Déploiement staging réussi - Phase 1 Fondations'
+      env:
+        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
+
+  # Job 5: Déploiement production (sur main)
+  deploy-production:
+    name: Déploiement Production
+    runs-on: ubuntu-latest
+    needs: [test-and-quality, integration-tests, build-and-optimize]
+    if: github.ref == 'refs/heads/main'
+    environment: production
+
+    steps:
+    - name: 📦 Checkout du code
+      uses: actions/checkout@v4
+
+    - name: 💾 Download des artefacts
+      uses: actions/download-artifact@v3
+      with:
+        name: build-artifacts
+
+    - name: 📦 Extraction des artefacts
+      run: tar -xzf build-artifacts.tar.gz
+
+    - name: 🔒 Backup base de données pré-déploiement
+      run: |
+        npm run db:backup -- --env production
+      env:
+        DATABASE_URL: ${{ secrets.PRODUCTION_DATABASE_URL }}
+
+    - name: 🚀 Déploiement vers Vercel Production
+      uses: amondnet/vercel-action@v25
+      with:
+        vercel-token: ${{ secrets.VERCEL_TOKEN }}
+        vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+        vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+        vercel-args: '--prod'
+        scope: ${{ secrets.VERCEL_ORG_ID }}
+
+    - name: 🗄️ Migration base de données production
+      run: npm run db:migrate
+      env:
+        DATABASE_URL: ${{ secrets.PRODUCTION_DATABASE_URL }}
+
+    - name: 🔍 Tests de smoke sur production
+      run: |
+        npm run test:smoke -- --baseUrl https://yesod-crm.com
+
+    - name: 📊 Monitoring post-déploiement
+      run: |
+        npm run monitor:health-check
+        npm run monitor:performance-check
+      env:
+        MONITORING_API_KEY: ${{ secrets.MONITORING_API_KEY }}
+
+    - name: 📢 Notification Slack production
+      uses: 8398a7/action-slack@v3
+      with:
+        status: ${{ job.status }}
+        channel: '#deployments'
+        text: '🎉 Déploiement production réussi - Phase 1 Fondations!'
+        webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+
+  # Job 6: Monitoring et alertes post-déploiement
+  post-deployment-monitoring:
+    name: Monitoring Post-Déploiement
+    runs-on: ubuntu-latest
+    needs: [deploy-production]
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+    - name: 📦 Checkout du code
+      uses: actions/checkout@v4
+
+    - name: 🚀 Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+
+    - name: 📥 Installation des dépendances
+      run: npm ci
+
+    - name: 🔍 Vérification santé de l'application
+      run: |
+        sleep 60 # Attendre que le déploiement soit stable
+        npm run health-check:production
+      env:
+        HEALTH_CHECK_URL: https://yesod-crm.com/api/health
+
+    - name: 📊 Tests de performance post-déploiement
+      run: |
+        npm run performance:lighthouse
+        npm run performance:load-test
+      env:
+        TARGET_URL: https://yesod-crm.com
+
+    - name: 🚨 Setup des alertes Sentry
+      run: |
+        npm run sentry:create-release
+        npm run sentry:associate-commits
+      env:
+        SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+        SENTRY_ORG: yesod-crm
+        SENTRY_PROJECT: yesod-frontend
+
+    - name: 📈 Métriques business post-déploiement
+      run: |
+        npm run metrics:business-check
+        npm run metrics:user-engagement
+      env:
+        ANALYTICS_API_KEY: ${{ secrets.ANALYTICS_API_KEY }}
+
+  # Job 7: Sécurité et conformité
+  security-compliance:
+    name: Sécurité & Conformité
+    runs-on: ubuntu-latest
+    needs: test-and-quality
+
+    steps:
+    - name: 📦 Checkout du code
+      uses: actions/checkout@v4
+
+    - name: 🔒 Scan de sécurité OWASP ZAP
+      uses: zaproxy/action-baseline@v0.7.0
+      with:
+        target: 'http://localhost:3000'
+
+    - name: 🛡️ Scan des vulnérabilités Snyk
+      uses: snyk/actions/node@master
+      env:
+        SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+      with:
+        args: --severity-threshold=high
+
+    - name: 📋 Vérification conformité RGPD
+      run: |
+        npm run compliance:rgpd-check
+        npm run compliance:data-privacy-audit
+
+    - name: 🔍 Scan des secrets avec TruffleHog
+      uses: trufflesecurity/trufflehog@main
+      with:
+        path: ./
+        base: main
+        head: HEAD
+
+    - name: 📊 Rapport de conformité
+      run: |
+        npm run generate:compliance-report
+      if: always()
+
+# Configuration des notifications et variables d'environnement globales
+env:
+  HUSKY: 0 # Désactiver Husky en CI
+  CI: true
+  FORCE_COLOR: 3

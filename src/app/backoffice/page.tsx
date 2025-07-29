@@ -18,7 +18,12 @@ import {
   ArrowDownRight,
   Plus,
   Eye,
-  Download
+  Download,
+  Brain,
+  Smartphone,
+  Scale,
+  TrendingUp,
+  Shield
 } from 'lucide-react'
 
 interface DashboardStats {
@@ -402,6 +407,144 @@ export default function BackofficeDashboard() {
                   <Calendar className="h-6 w-6 mb-2" />
                   Planifier RDV
                 </Button>
+              </div>
+            </div>
+
+            {/* Phase 3 - Intelligence & Analytics */}
+            <div className="bg-gradient-to-br from-purple-50 to-blue-50 rounded-xl shadow-sm border border-purple-200 p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">🚀 Phase 3 - Intelligence & Analytics</h3>
+              <p className="text-sm text-gray-600 mb-6">Fonctionnalités avancées d'IA et d'analyse prédictive</p>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <button
+                  onClick={() => router.push('/backoffice/business-intelligence')}
+                  className="p-4 text-left bg-white border border-blue-200 rounded-lg hover:border-blue-400 hover:bg-blue-50 transition-colors"
+                >
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="p-2 bg-blue-100 rounded-lg">
+                      <TrendingUp className="h-5 w-5 text-blue-600" />
+                    </div>
+                    <div>
+                      <h4 className="font-medium text-gray-900">Business Intelligence</h4>
+                      <p className="text-sm text-gray-500">KPIs et analytics</p>
+                    </div>
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => router.push('/backoffice/predictive-ai')}
+                  className="p-4 text-left bg-white border border-purple-200 rounded-lg hover:border-purple-400 hover:bg-purple-50 transition-colors"
+                >
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="p-2 bg-purple-100 rounded-lg">
+                      <Brain className="h-5 w-5 text-purple-600" />
+                    </div>
+                    <div>
+                      <h4 className="font-medium text-gray-900">IA Prédictive</h4>
+                      <p className="text-sm text-gray-500">Scoring et recommandations</p>
+                    </div>
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => router.push('/mobile')}
+                  className="p-4 text-left bg-white border border-green-200 rounded-lg hover:border-green-400 hover:bg-green-50 transition-colors"
+                >
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="p-2 bg-green-100 rounded-lg">
+                      <Smartphone className="h-5 w-5 text-green-600" />
+                    </div>
+                    <div>
+                      <h4 className="font-medium text-gray-900">App Mobile PWA</h4>
+                      <p className="text-sm text-gray-500">Géolocalisation et scan</p>
+                    </div>
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => router.push('/backoffice/legal-ecosystem')}
+                  className="p-4 text-left bg-white border border-yellow-200 rounded-lg hover:border-yellow-400 hover:bg-yellow-50 transition-colors"
+                >
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="p-2 bg-yellow-100 rounded-lg">
+                      <Scale className="h-5 w-5 text-yellow-600" />
+                    </div>
+                    <div>
+                      <h4 className="font-medium text-gray-900">Écosystème Légal</h4>
+                      <p className="text-sm text-gray-500">Infogreffe, BdF, huissiers</p>
+                    </div>
+                  </div>
+                </button>
+              </div>
+            </div>
+
+            {/* Phase 4 - Sécurité & Conformité RGPD */}
+            <div className="bg-gradient-to-br from-red-50 to-orange-50 rounded-xl shadow-sm border border-red-200 p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">🔒 Phase 4 - Sécurité & Conformité RGPD</h3>
+              <p className="text-sm text-gray-600 mb-6">Sécurité avancée et conformité réglementaire complète</p>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <button
+                  onClick={() => router.push('/backoffice/security')}
+                  className="p-4 text-left bg-white border border-red-200 rounded-lg hover:border-red-400 hover:bg-red-50 transition-colors"
+                >
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="p-2 bg-red-100 rounded-lg">
+                      <AlertTriangle className="h-5 w-5 text-red-600" />
+                    </div>
+                    <div>
+                      <h4 className="font-medium text-gray-900">Sécurité Avancée</h4>
+                      <p className="text-sm text-gray-500">Monitoring et audit trail</p>
+                    </div>
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => router.push('/backoffice/rgpd')}
+                  className="p-4 text-left bg-white border border-blue-200 rounded-lg hover:border-blue-400 hover:bg-blue-50 transition-colors"
+                >
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="p-2 bg-blue-100 rounded-lg">
+                      <FileText className="h-5 w-5 text-blue-600" />
+                    </div>
+                    <div>
+                      <h4 className="font-medium text-gray-900">Conformité RGPD</h4>
+                      <p className="text-sm text-gray-500">Consentements et droit à l'oubli</p>
+                    </div>
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => {
+                    alert('Interface 2FA:\n• Configuration authentification double facteur\n• Codes de récupération\n• Gestion des appareils de confiance\n• Intégration Google Authenticator/Authy')
+                  }}
+                  className="p-4 text-left bg-white border border-green-200 rounded-lg hover:border-green-400 hover:bg-green-50 transition-colors"
+                >
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="p-2 bg-green-100 rounded-lg">
+                      <Users className="h-5 w-5 text-green-600" />
+                    </div>
+                    <div>
+                      <h4 className="font-medium text-gray-900">Authentification 2FA</h4>
+                      <p className="text-sm text-gray-500">Protection double facteur</p>
+                    </div>
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => {
+                    alert('Chiffrement des Données:\n• AES-256 end-to-end\n• Rotation automatique des clés\n• Chiffrement des documents sensibles\n• Anonymisation automatique')
+                  }}
+                  className="p-4 text-left bg-white border border-purple-200 rounded-lg hover:border-purple-400 hover:bg-purple-50 transition-colors"
+                >
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="p-2 bg-purple-100 rounded-lg">
+                      <Eye className="h-5 w-5 text-purple-600" />
+                    </div>
+                    <div>
+                      <h4 className="font-medium text-gray-900">Chiffrement Données</h4>
+                      <p className="text-sm text-gray-500">Protection AES-256</p>
+                    </div>
+                  </div>
+                </button>
               </div>
             </div>
 

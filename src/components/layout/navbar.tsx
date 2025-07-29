@@ -51,6 +51,12 @@ export default function Navbar() {
                 >
                   Tableau de bord
                 </Link>
+                <Link
+                  href="/mobile"
+                  className="bg-purple-600 text-white hover:bg-purple-700 px-4 py-2 rounded-md text-sm font-medium transition-colors"
+                >
+                  📱 App Mobile
+                </Link>
                 {session.user?.role === 'LAWYER' || session.user?.role === 'ADMIN' ? (
                   <Link
                     href="/backoffice"
