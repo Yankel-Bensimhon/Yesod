@@ -385,7 +385,7 @@ export class BusinessIntelligenceEngine {
       return sum + paidAmount;
     }, 0);
 
-    const totalInvoiced = invoices.reduce((sum, invoice) => sum + invoice.totalAmount, 0);
+    const totalInvoiced = invoices.reduce((sum, invoice) => sum + invoice.total, 0);
     const collectionRate = totalInvoiced > 0 ? (totalRevenue / totalInvoiced) * 100 : 0;
 
     return {
@@ -403,7 +403,7 @@ export class BusinessIntelligenceEngine {
       }
     });
 
-    const activeCases = allCases.filter(c => c.status === 'ACTIVE').length;
+    const activeCases = allCases.filter(c => c.status === 'OPEN').length;
     const resolvedCases = allCases.filter(c => c.status === 'RESOLVED').length;
 
     const resolvedCasesWithTimes = allCases.filter(c => 
@@ -438,7 +438,7 @@ export class BusinessIntelligenceEngine {
       }
     });
 
-    const activeClients = clients.filter(c => c.cases.some(cs => cs.status === 'ACTIVE')).length;
+    const activeClients = clients.filter(c => c.cases.some(cs => cs.status === 'OPEN')).length;
 
     return {
       total: clients.length,
@@ -514,7 +514,7 @@ export class BusinessIntelligenceEngine {
         label: 'Revenus (€)',
         data: data.map(d => d.value),
         borderColor: '#3B82F6',
-        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+        backgroundColor: ['rgba(59, 130, 246, 0.1)'],
         type: 'line'
       }]
     };
@@ -557,12 +557,12 @@ export class BusinessIntelligenceEngine {
         {
           label: 'Revenus 2025',
           data: [12000, 15000, 18000, 14000, 16000, 20000],
-          backgroundColor: '#3B82F6'
+          backgroundColor: ['#3B82F6']
         },
         {
           label: 'Revenus 2024',
           data: [10000, 12000, 15000, 13000, 14000, 17000],
-          backgroundColor: '#6B7280'
+          backgroundColor: ['#6B7280']
         }
       ]
     };

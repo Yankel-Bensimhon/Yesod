@@ -42,7 +42,7 @@ interface CaseScore {
 
 interface AIRecommendation {
   id: string;
-  type: 'strategy' | 'timing' | 'resource' | 'risk';
+  type: 'strategy' | 'timing' | 'action' | 'amount';
   priority: 'high' | 'medium' | 'low';
   title: string;
   description: string;
@@ -93,15 +93,25 @@ const PredictiveAIDashboard: React.FC = () => {
       const scores = await Promise.all(
         mockCases.map(async (caseData) => {
           const score = await aiEngine.calculateCaseScore(caseData.id);
+          
+          // Transformer les ScoreFactor[] en structure plate attendue
+          const factorsFlat = {
+            debtor_profile: score.factors.find(f => f.name.includes('Historique'))?.value || 70,
+            debt_amount: score.factors.find(f => f.name.includes('Montant'))?.value || 50,
+            case_complexity: score.factors.find(f => f.name.includes('Âge'))?.value || 60,
+            market_conditions: score.factors.find(f => f.name.includes('Communications'))?.value || 65,
+            legal_precedents: score.factors.find(f => f.name.includes('débiteur'))?.value || 75,
+          };
+          
           return {
             caseId: caseData.id,
-            score: score.overall_score,
+            score: score.overallScore,
             confidence: score.confidence,
-            factors: score.factors,
-            recommendations: score.recommendations,
-            risk_level: score.overall_score > 70 ? 'low' : score.overall_score > 40 ? 'medium' : 'high',
-            predicted_outcome: score.overall_score > 60 ? 'Succès probable' : 'Résolution difficile',
-            estimated_duration: Math.round(score.estimated_duration),
+            factors: factorsFlat,
+            recommendations: [score.recommendedStrategy],
+            risk_level: score.riskLevel.toLowerCase() as 'low' | 'medium' | 'high',
+            predicted_outcome: score.overallScore > 60 ? 'Succès probable' : 'Résolution difficile',
+            estimated_duration: score.predictedResolutionTime,
           } as CaseScore;
         })
       );
@@ -111,12 +121,12 @@ const PredictiveAIDashboard: React.FC = () => {
       const recommendations = await aiEngine.generateAIRecommendations('case-1');
       setAIRecommendations(recommendations.map((rec, index) => ({
         id: `rec-${index}`,
-        type: ['strategy', 'timing', 'resource', 'risk'][index % 4] as any,
-        priority: ['high', 'medium', 'low'][index % 3] as any,
-        title: rec,
-        description: `Recommandation détaillée pour ${rec}`,
-        impact_score: Math.random() * 100,
-        confidence: 80 + Math.random() * 20,
+        type: rec.type,
+        priority: rec.priority,
+        title: rec.title,
+        description: rec.description,
+        impact_score: rec.expectedImpact || Math.random() * 100,
+        confidence: rec.confidence,
         created_at: new Date().toISOString(),
       })));
 
@@ -165,8 +175,7 @@ const PredictiveAIDashboard: React.FC = () => {
   const runBatchAnalysis = async () => {
     try {
       setLoading(true);
-      const caseIds = caseScores.map(c => c.caseId);
-      const batchResults = await aiEngine.analyzeBatchCases(caseIds);
+      const batchResults = await aiEngine.analyzeBatchCases();
       
       // Mettre à jour les scores avec les résultats de l'analyse par lot
       const updatedScores = caseScores.map(score => ({

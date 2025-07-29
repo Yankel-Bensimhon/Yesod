@@ -134,7 +134,6 @@ export class PredictiveScoringEngine {
         where: { id: caseId },
         include: {
           client: true,
-          debtor: true,
           invoices: {
             include: { payments: true }
           },
@@ -233,28 +232,38 @@ export class PredictiveScoringEngine {
    */
   async generateDebtorProfile(caseId: string): Promise<DebtorProfile> {
     try {
+      // Simulation du profil débiteur basé sur les données disponibles
       const caseData = await prisma.case.findUnique({
         where: { id: caseId },
         include: {
-          debtor: {
-            include: {
-              cases: {
-                include: {
-                  invoices: { include: { payments: true } },
-                  communications: true
-                }
-              }
-            }
-          }
+          client: true,
+          invoices: { include: { payments: true } },
+          communications: true
         }
       });
 
-      if (!caseData?.debtor) {
-        throw new Error(`Débiteur non trouvé pour le dossier ${caseId}`);
+      if (!caseData) {
+        throw new Error(`Dossier ${caseId} non trouvé`);
       }
 
-      const debtor = caseData.debtor;
-      const historicalCases = debtor.cases;
+      // Créer un profil basé sur les données du client et du dossier
+      const debtorId = caseData.client?.id || caseData.id;
+      const debtorName = caseData.client?.name || caseData.debtorName;
+
+      // Rechercher autres dossiers du même client pour l'historique
+      const historicalCases = await prisma.case.findMany({
+        where: {
+          OR: [
+            { clientId: caseData.clientId },
+            { debtorEmail: caseData.debtorEmail },
+            { debtorName: caseData.debtorName }
+          ]
+        },
+        include: {
+          invoices: { include: { payments: true } },
+          communications: true
+        }
+      });
 
       // Analyse du comportement de paiement
       const paymentBehavior = this.analyzePaymentBehavior(historicalCases);
@@ -269,11 +278,11 @@ export class PredictiveScoringEngine {
       const historicalPerformance = this.calculateHistoricalPerformance(historicalCases);
       
       // Prédictions
-      const predictedOutcomes = await this.predictDebtorOutcomes(debtor.id);
+      const predictedOutcomes = await this.predictDebtorOutcomes(debtorId);
 
       return {
-        id: `profile_${debtor.id}`,
-        debtorId: debtor.id,
+        id: `profile_${debtorId}`,
+        debtorId,
         riskCategory: this.determineRiskCategory(financialStability, paymentBehavior),
         paymentBehavior,
         financialStability,
@@ -328,7 +337,7 @@ export class PredictiveScoringEngine {
       console.log('📊 Analyse batch des dossiers actifs...');
 
       const activeCases = await prisma.case.findMany({
-        where: { status: 'ACTIVE' },
+        where: { status: 'OPEN' },
         select: { id: true }
       });
 
@@ -437,7 +446,7 @@ export class PredictiveScoringEngine {
     factors.push(ageFactor);
 
     // Facteur: Historique de paiement du débiteur
-    const paymentHistoryFactor = await this.calculatePaymentHistoryFactor(caseData.debtor.id);
+    const paymentHistoryFactor = await this.calculatePaymentHistoryFactor(caseData.client?.id || caseData.id);
     factors.push(paymentHistoryFactor);
 
     // Facteur: Nombre de communications
@@ -445,7 +454,8 @@ export class PredictiveScoringEngine {
     factors.push(communicationFactor);
 
     // Facteur: Type de débiteur (entreprise vs particulier)
-    const debtorTypeFactor = this.calculateDebtorTypeFactor(caseData.debtor.type);
+    const debtorType = caseData.client?.type || 'INDIVIDUAL';
+    const debtorTypeFactor = this.calculateDebtorTypeFactor(debtorType);
     factors.push(debtorTypeFactor);
 
     return factors;
