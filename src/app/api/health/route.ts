@@ -140,7 +140,7 @@ async function checkCache(): Promise<HealthCheck> {
     
     await cacheService.set(testKey, testValue, 60)
     const retrieved = await cacheService.get(testKey)
-    await cacheService.delete(testKey)
+    await cacheService.del(testKey)
     
     if (retrieved !== testValue) {
       throw new Error('Cache read/write test failed')
