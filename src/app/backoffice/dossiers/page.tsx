@@ -71,6 +71,26 @@ export default function DossiersManagement() {
   const [filterType, setFilterType] = useState('tous')
   const [sortBy, setSortBy] = useState('recent')
 
+  // Fonction pour gérer les actions supplémentaires
+  const handleMoreActions = (caseId: string) => {
+    const actions = [
+      'Archiver le dossier',
+      'Dupliquer le dossier', 
+      'Générer un rapport',
+      'Exporter en PDF',
+      'Assigner à un collaborateur'
+    ]
+    
+    const action = window.prompt(`Actions disponibles pour le dossier ${caseId}:\n\n${actions.map((a, i) => `${i + 1}. ${a}`).join('\n')}\n\nChoisissez un numéro (1-${actions.length}):`)
+    
+    if (action && !isNaN(parseInt(action))) {
+      const actionIndex = parseInt(action) - 1
+      if (actionIndex >= 0 && actionIndex < actions.length) {
+        alert(`Action "${actions[actionIndex]}" sera bientôt disponible pour le dossier ${caseId}`)
+      }
+    }
+  }
+
   useEffect(() => {
     if (status === 'loading') return
 
@@ -499,16 +519,36 @@ export default function DossiersManagement() {
 
                 {/* Actions */}
                 <div className="flex items-center gap-2 ml-4">
-                  <Button variant="ghost" size="sm" title="Voir le dossier">
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    title="Voir le dossier"
+                    onClick={() => router.push(`/backoffice/dossiers/${case_.id}`)}
+                  >
                     <Eye className="h-4 w-4" />
                   </Button>
-                  <Button variant="ghost" size="sm" title="Modifier">
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    title="Modifier"
+                    onClick={() => router.push(`/backoffice/dossiers/${case_.id}/modifier`)}
+                  >
                     <Edit className="h-4 w-4" />
                   </Button>
-                  <Button variant="ghost" size="sm" title="Contact client">
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    title="Contact client"
+                    onClick={() => window.open(`mailto:${case_.client.email}`, '_blank')}
+                  >
                     <Mail className="h-4 w-4" />
                   </Button>
-                  <Button variant="ghost" size="sm" title="Plus d&apos;actions">
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    title="Plus d&apos;actions"
+                    onClick={() => handleMoreActions(case_.id)}
+                  >
                     <MoreHorizontal className="h-4 w-4" />
                   </Button>
                 </div>

@@ -207,7 +207,13 @@ export default function BackofficeDashboard() {
               </p>
             </div>
             <div className="flex gap-3">
-              <Button variant="outline" className="flex items-center gap-2">
+              <Button 
+                variant="outline" 
+                className="flex items-center gap-2"
+                onClick={() => {
+                  alert('Fonctionnalité d\'export en cours de développement.\nProchainement : Export PDF, Excel, CSV des données.')
+                }}
+              >
                 <Download className="h-4 w-4" />
                 Exporter
               </Button>
@@ -231,6 +237,8 @@ export default function BackofficeDashboard() {
               onClick={() => {
                 if (stat.label === 'Dossiers Actifs') router.push('/backoffice/dossiers')
                 if (stat.label === 'Clients Actifs') router.push('/backoffice/clients')
+                if (stat.label === 'CA Mensuel') router.push('/backoffice/facturation')
+                if (stat.label === 'Échéances') router.push('/backoffice/agenda')
               }}
             >
               <div className="flex items-center justify-between">
@@ -271,26 +279,42 @@ export default function BackofficeDashboard() {
             <div className="bg-white rounded-xl shadow-sm border p-6">
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-lg font-semibold text-gray-900">Vue d&apos;ensemble des dossiers</h3>
-                <Button variant="outline" size="sm">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => router.push('/backoffice/dossiers')}
+                >
                   <Eye className="h-4 w-4 mr-2" />
                   Voir tout
                 </Button>
               </div>
               
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="text-center p-4 bg-blue-50 rounded-lg">
+                <div 
+                  className="text-center p-4 bg-blue-50 rounded-lg cursor-pointer hover:bg-blue-100 transition-colors"
+                  onClick={() => router.push('/backoffice/dossiers')}
+                >
                   <div className="text-2xl font-bold text-blue-600">{dashboardStats.totalCases}</div>
                   <div className="text-sm text-blue-600">Total</div>
                 </div>
-                <div className="text-center p-4 bg-green-50 rounded-lg">
+                <div 
+                  className="text-center p-4 bg-green-50 rounded-lg cursor-pointer hover:bg-green-100 transition-colors"
+                  onClick={() => router.push('/backoffice/dossiers?status=actif')}
+                >
                   <div className="text-2xl font-bold text-green-600">{dashboardStats.activeCases}</div>
                   <div className="text-sm text-green-600">Actifs</div>
                 </div>
-                <div className="text-center p-4 bg-yellow-50 rounded-lg">
+                <div 
+                  className="text-center p-4 bg-yellow-50 rounded-lg cursor-pointer hover:bg-yellow-100 transition-colors"
+                  onClick={() => router.push('/backoffice/dossiers?status=en_attente')}
+                >
                   <div className="text-2xl font-bold text-yellow-600">{dashboardStats.pendingCases}</div>
                   <div className="text-sm text-yellow-600">En attente</div>
                 </div>
-                <div className="text-center p-4 bg-gray-50 rounded-lg">
+                <div 
+                  className="text-center p-4 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors"
+                  onClick={() => router.push('/backoffice/dossiers?status=clos')}
+                >
                   <div className="text-2xl font-bold text-gray-600">{dashboardStats.closedCases}</div>
                   <div className="text-sm text-gray-600">Clos</div>
                 </div>
@@ -301,26 +325,39 @@ export default function BackofficeDashboard() {
             <div className="bg-white rounded-xl shadow-sm border p-6">
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-lg font-semibold text-gray-900">Situation financière</h3>
-                <Button variant="outline" size="sm">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => router.push('/backoffice/facturation')}
+                >
                   <BarChart3 className="h-4 w-4 mr-2" />
                   Détails
                 </Button>
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="text-center">
+                <div 
+                  className="text-center cursor-pointer hover:bg-gray-50 p-3 rounded-lg transition-colors"
+                  onClick={() => router.push('/backoffice/facturation')}
+                >
                   <div className="text-3xl font-bold text-green-600">
                     {dashboardStats.totalRevenue.toLocaleString()}€
                   </div>
                   <div className="text-sm text-gray-500">CA Total</div>
                 </div>
-                <div className="text-center">
+                <div 
+                  className="text-center cursor-pointer hover:bg-gray-50 p-3 rounded-lg transition-colors"
+                  onClick={() => router.push('/backoffice/facturation?status=en_attente')}
+                >
                   <div className="text-3xl font-bold text-blue-600">
                     {dashboardStats.pendingInvoices}
                   </div>
                   <div className="text-sm text-gray-500">Factures en attente</div>
                 </div>
-                <div className="text-center">
+                <div 
+                  className="text-center cursor-pointer hover:bg-gray-50 p-3 rounded-lg transition-colors"
+                  onClick={() => router.push('/backoffice/facturation?status=en_retard')}
+                >
                   <div className="text-3xl font-bold text-red-600">
                     {dashboardStats.overdueInvoices}
                   </div>

@@ -38,11 +38,15 @@ interface CaseFormData {
   clientId: string
   counterpartyName: string
   counterpartyCompany: string
+  counterpartyEmail: string
+  counterpartyPhone: string
+  counterpartyAddress: string
   amount: string
   currency: string
   priority: 'basse' | 'normale' | 'haute' | 'urgente'
   description: string
   dueDate: string
+  invoiceNumber: string
   tags: string[]
   documents: File[]
 }
@@ -61,11 +65,15 @@ export default function NewCase() {
     clientId: '',
     counterpartyName: '',
     counterpartyCompany: '',
+    counterpartyEmail: '',
+    counterpartyPhone: '',
+    counterpartyAddress: '',
     amount: '',
     currency: 'EUR',
     priority: 'normale',
     description: '',
     dueDate: '',
+    invoiceNumber: '',
     tags: [],
     documents: []
   })
@@ -204,21 +212,41 @@ export default function NewCase() {
     setLoading(true)
 
     try {
-      // Ici, on enverrait les données au backend
-      console.log('Données du nouveau dossier:', {
-        ...formData,
-        client: selectedClient,
-        amount: formData.amount ? Number(formData.amount) : undefined
+      // Préparer les données pour l'API
+      const caseData = {
+        title: formData.title,
+        description: formData.description,
+        debtorName: formData.counterpartyName,
+        debtorEmail: formData.counterpartyEmail || '',
+        debtorPhone: formData.counterpartyPhone || '',
+        debtorAddress: formData.counterpartyAddress || '',
+        amount: formData.amount ? Number(formData.amount) : 0,
+        currency: formData.currency,
+        invoiceNumber: formData.invoiceNumber || '',
+        dueDate: formData.dueDate || null
+      }
+
+      const response = await fetch('/api/cases', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(caseData)
       })
 
-      // Simulation d'envoi
-      await new Promise(resolve => setTimeout(resolve, 1500))
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Erreur lors de la création du dossier')
+      }
+
+      const newCase = await response.json()
+      console.log('Dossier créé avec succès:', newCase)
 
       // Redirection vers la liste des dossiers
       router.push('/backoffice/dossiers')
     } catch (error) {
       console.error('Erreur lors de la création du dossier:', error)
-      setErrors({ general: 'Une erreur est survenue lors de la création du dossier' })
+      setErrors({ general: error instanceof Error ? error.message : 'Une erreur est survenue lors de la création du dossier' })
     } finally {
       setLoading(false)
     }
@@ -257,6 +285,16 @@ export default function NewCase() {
           <h1 className="text-3xl font-bold text-gray-900">Nouveau Dossier</h1>
           <p className="text-gray-600 mt-1">Créez un nouveau dossier juridique</p>
         </div>
+
+        {/* Affichage des erreurs générales */}
+        {errors.general && (
+          <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4">
+            <div className="flex items-center">
+              <AlertTriangle className="h-5 w-5 text-red-500 mr-2" />
+              <p className="text-red-700">{errors.general}</p>
+            </div>
+          </div>
+        )}
 
         {/* Formulaire */}
         <form onSubmit={handleSubmit} className="space-y-8">
@@ -475,6 +513,42 @@ export default function NewCase() {
                   placeholder="Nom de l&apos;entreprise"
                 />
               </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Email
+                </label>
+                <Input
+                  type="email"
+                  value={formData.counterpartyEmail}
+                  onChange={(e) => handleInputChange('counterpartyEmail', e.target.value)}
+                  placeholder="email@exemple.com"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Téléphone
+                </label>
+                <Input
+                  type="tel"
+                  value={formData.counterpartyPhone}
+                  onChange={(e) => handleInputChange('counterpartyPhone', e.target.value)}
+                  placeholder="01 23 45 67 89"
+                />
+              </div>
+
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Adresse
+                </label>
+                <Textarea
+                  value={formData.counterpartyAddress}
+                  onChange={(e) => handleInputChange('counterpartyAddress', e.target.value)}
+                  placeholder="Adresse complète de la partie adverse"
+                  rows={3}
+                />
+              </div>
             </div>
           </div>
 
@@ -485,7 +559,7 @@ export default function NewCase() {
               Montant en jeu (optionnel)
             </h2>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Montant
@@ -516,6 +590,17 @@ export default function NewCase() {
                   <option value="GBP">GBP - Livre sterling</option>
                   <option value="CHF">CHF - Franc suisse</option>
                 </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Numéro de facture
+                </label>
+                <Input
+                  value={formData.invoiceNumber}
+                  onChange={(e) => handleInputChange('invoiceNumber', e.target.value)}
+                  placeholder="FAC-2024-001"
+                />
               </div>
             </div>
           </div>
@@ -581,8 +666,8 @@ export default function NewCase() {
                   className="hidden"
                   id="file-upload"
                 />
-                <label htmlFor="file-upload">
-                  <Button type="button" variant="outline" asChild>
+                <label htmlFor="file-upload" className="cursor-pointer">
+                  <Button type="button" variant="outline" className="pointer-events-none">
                     <span>Parcourir les fichiers</span>
                   </Button>
                 </label>

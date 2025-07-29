@@ -77,6 +77,32 @@ export default function ClientsManagement() {
   const [filterType, setFilterType] = useState('tous')
   const [sortBy, setSortBy] = useState('recent')
 
+  // Fonction pour gérer les actions supplémentaires des clients
+  const handleMoreActionsClient = (clientId: string) => {
+    const actions = [
+      'Créer un nouveau dossier',
+      'Voir l\'historique complet',
+      'Planifier un rendez-vous',
+      'Exporter les données',
+      'Marquer comme inactif',
+      'Fusionner avec un autre client'
+    ]
+    
+    const action = window.prompt(`Actions disponibles pour le client ${clientId}:\n\n${actions.map((a, i) => `${i + 1}. ${a}`).join('\n')}\n\nChoisissez un numéro (1-${actions.length}):`)
+    
+    if (action && !isNaN(parseInt(action))) {
+      const actionIndex = parseInt(action) - 1
+      if (actionIndex >= 0 && actionIndex < actions.length) {
+        if (actionIndex === 0) {
+          // Créer un nouveau dossier pour ce client
+          router.push(`/backoffice/dossiers/nouveau?clientId=${clientId}`)
+        } else {
+          alert(`Action "${actions[actionIndex]}" sera bientôt disponible pour le client ${clientId}`)
+        }
+      }
+    }
+  }
+
   useEffect(() => {
     if (status === 'loading') return
 
@@ -631,19 +657,44 @@ export default function ClientsManagement() {
 
                 {/* Actions */}
                 <div className="flex items-center gap-2 ml-4">
-                  <Button variant="ghost" size="sm" title="Voir le profil">
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    title="Voir le profil"
+                    onClick={() => router.push(`/backoffice/clients/${client.id}`)}
+                  >
                     <Eye className="h-4 w-4" />
                   </Button>
-                  <Button variant="ghost" size="sm" title="Modifier">
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    title="Modifier"
+                    onClick={() => router.push(`/backoffice/clients/${client.id}/modifier`)}
+                  >
                     <Edit className="h-4 w-4" />
                   </Button>
-                  <Button variant="ghost" size="sm" title="Envoyer un email">
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    title="Envoyer un email"
+                    onClick={() => window.open(`mailto:${client.email}`, '_blank')}
+                  >
                     <Mail className="h-4 w-4" />
                   </Button>
-                  <Button variant="ghost" size="sm" title="Appeler">
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    title="Appeler"
+                    onClick={() => window.open(`tel:${client.phone}`, '_self')}
+                  >
                     <Phone className="h-4 w-4" />
                   </Button>
-                  <Button variant="ghost" size="sm" title="Plus d&apos;actions">
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    title="Plus d&apos;actions"
+                    onClick={() => handleMoreActionsClient(client.id)}
+                  >
                     <MoreHorizontal className="h-4 w-4" />
                   </Button>
                 </div>

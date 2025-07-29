@@ -496,8 +496,7 @@ export default function AgendaManagement() {
           {/* Vue principale */}
           <div className="lg:col-span-2">
             {viewMode === 'list' ? (
-              
-              {/* Vue liste */}
+              // Vue liste
               <div className="bg-white rounded-xl shadow-sm border">
                 <div className="p-6 border-b border-gray-200">
                   <h3 className="text-lg font-semibold text-gray-900">
@@ -591,8 +590,7 @@ export default function AgendaManagement() {
                 </div>
               </div>
             ) : (
-              
-              {/* Autres vues (placeholder pour calendrier visuel) */}
+              /* Autres vues (placeholder pour calendrier visuel) */
               <div className="bg-white rounded-xl shadow-sm border p-6">
                 <div className="text-center py-12">
                   <Calendar className="mx-auto h-12 w-12 text-gray-400 mb-4" />
