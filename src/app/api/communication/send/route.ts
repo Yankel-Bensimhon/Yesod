@@ -48,11 +48,8 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// GET /api/communication/history/:caseId - Historique communications d'un dossier
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { caseId: string } }
-) {
+// GET /api/communication/send?caseId=... - Historique communications d'un dossier
+export async function GET(request: NextRequest) {
   try {
     // Simulation de session pour la démo
     const session = { user: { role: 'LAWYER' } }
@@ -61,7 +58,9 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { caseId } = params
+    // Récupérer caseId depuis les query parameters
+    const { searchParams } = new URL(request.url)
+    const caseId = searchParams.get('caseId')
     
     if (!caseId) {
       return NextResponse.json({ error: 'Case ID required' }, { status: 400 })
