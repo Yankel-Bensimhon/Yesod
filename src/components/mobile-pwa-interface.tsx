@@ -2,19 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { MobileAppEngine } from '@/lib/mobile/mobile-app-engine';
-
-interface MobileCapabilities {
-  geolocation: boolean;
-  camera: boolean;
-  notifications: boolean;
-  offline: boolean;
-  deviceInfo: {
-    platform: string;
-    userAgent: string;
-    language: string;
-  };
-}
+import { MobileAppEngine, MobileFeatures } from '@/lib/mobile/mobile-app-engine';
 
 interface LocationData {
   latitude: number;
@@ -42,7 +30,7 @@ interface OfflineAction {
 }
 
 const MobilePWAInterface: React.FC = () => {
-  const [capabilities, setCapabilities] = useState<MobileCapabilities | null>(null);
+  const [capabilities, setCapabilities] = useState<MobileFeatures | null>(null);
   const [location, setLocation] = useState<LocationData | null>(null);
   const [isTracking, setIsTracking] = useState(false);
   const [scannedDocuments, setScannedDocuments] = useState<DocumentScan[]>([]);
@@ -65,7 +53,7 @@ const MobilePWAInterface: React.FC = () => {
       setCapabilities(caps);
 
       // Demander les permissions pour les notifications
-      if (caps.notifications && 'Notification' in window) {
+      if (caps.push && 'Notification' in window) {
         if (Notification.permission === 'default') {
           await Notification.requestPermission();
         }
@@ -110,16 +98,21 @@ const MobilePWAInterface: React.FC = () => {
       
       // Ajouter action hors ligne si nécessaire
       if (!isOnline) {
-        await mobileEngine.addOfflineAction('location_update', position);
+        await mobileEngine.addOfflineAction({
+          type: 'update',
+          entity: 'case',
+          data: position
+        });
         loadOfflineActions();
       }
 
       // Envoyer notification
-      if (capabilities?.notifications) {
-        await mobileEngine.sendPushNotification(
-          'Localisation mise à jour',
-          'Votre position a été enregistrée pour ce dossier'
-        );
+      if (capabilities?.push) {
+        await mobileEngine.sendPushNotification({
+          title: 'Localisation mise à jour',
+          body: 'Votre position a été enregistrée pour ce dossier',
+          type: 'update'
+        });
       }
     } catch (error) {
       console.error('Erreur de géolocalisation:', error);
@@ -148,7 +141,7 @@ const MobilePWAInterface: React.FC = () => {
         const file = (event.target as HTMLInputElement).files?.[0];
         if (file) {
           try {
-            const result = await mobileEngine.scanDocument(file);
+            const result = await mobileEngine.scanDocument();
             
             const newDocument: DocumentScan = {
               id: Date.now().toString(),
@@ -156,7 +149,7 @@ const MobilePWAInterface: React.FC = () => {
               type: file.type,
               size: file.size,
               timestamp: new Date().toISOString(),
-              text: result.text,
+              text: result.content,
               confidence: result.confidence,
             };
             
@@ -164,16 +157,21 @@ const MobilePWAInterface: React.FC = () => {
             
             // Ajouter action hors ligne si nécessaire
             if (!isOnline) {
-              await mobileEngine.addOfflineAction('document_scan', newDocument);
+              await mobileEngine.addOfflineAction({
+                type: 'create',
+                entity: 'document',
+                data: newDocument
+              });
               loadOfflineActions();
             }
 
             // Envoyer notification
-            if (capabilities?.notifications) {
-              await mobileEngine.sendPushNotification(
-                'Document scanné',
-                `Document "${file.name}" traité avec ${Math.round(result.confidence)}% de confiance`
-              );
+            if (capabilities?.push) {
+              await mobileEngine.sendPushNotification({
+                title: 'Document scanné',
+                body: `Document "${file.name}" traité avec ${Math.round(result.confidence)}% de confiance`,
+                type: 'update'
+              });
             }
           } catch (error) {
             console.error('Erreur lors du scan:', error);
@@ -209,11 +207,12 @@ const MobilePWAInterface: React.FC = () => {
       localStorage.setItem('yesod_offline_actions', JSON.stringify(actions));
       setOfflineActions(actions);
       
-      if (capabilities?.notifications) {
-        await mobileEngine.sendPushNotification(
-          'Synchronisation terminée',
-          `${actions.filter((a: any) => a.status === 'synced').length} actions synchronisées`
-        );
+      if (capabilities?.push) {
+        await mobileEngine.sendPushNotification({
+          title: 'Synchronisation terminée',
+          body: `${actions.filter((a: any) => a.status === 'synced').length} actions synchronisées`,
+          type: 'update'
+        });
       }
     } catch (error) {
       console.error('Erreur lors de la synchronisation:', error);
@@ -223,11 +222,12 @@ const MobilePWAInterface: React.FC = () => {
   const installPWA = async () => {
     try {
       // Simuler l'installation PWA
-      if (capabilities?.notifications) {
-        await mobileEngine.sendPushNotification(
-          'Application installée',
-          'Yesod est maintenant disponible sur votre écran d\'accueil'
-        );
+      if (capabilities?.push) {
+        await mobileEngine.sendPushNotification({
+          title: 'Application installée',
+          body: 'Yesod est maintenant disponible sur votre écran d\'accueil',
+          type: 'update'
+        });
       }
       alert('Application installée avec succès!');
     } catch (error) {
@@ -293,7 +293,7 @@ const MobilePWAInterface: React.FC = () => {
               <span className="text-sm">Caméra</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className={`w-3 h-3 rounded-full ${capabilities.notifications ? 'bg-green-500' : 'bg-red-500'}`}></div>
+              <div className={`w-3 h-3 rounded-full ${capabilities.push ? 'bg-green-500' : 'bg-red-500'}`}></div>
               <span className="text-sm">Notifications</span>
             </div>
             <div className="flex items-center gap-2">
@@ -302,8 +302,8 @@ const MobilePWAInterface: React.FC = () => {
             </div>
           </div>
           <div className="mt-3 text-xs text-gray-600">
-            <p>Plateforme: {capabilities.deviceInfo.platform}</p>
-            <p>Langue: {capabilities.deviceInfo.language}</p>
+            <p>Plateforme: {navigator.platform}</p>
+            <p>Langue: {navigator.language}</p>
           </div>
         </motion.div>
       )}
