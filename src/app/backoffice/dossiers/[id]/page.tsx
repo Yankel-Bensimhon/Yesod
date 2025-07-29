@@ -105,7 +105,7 @@ export default function CaseDetail() {
         <div className="text-center">
           <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-gray-900 mb-2">Dossier non trouvé</h3>
-          <p className="text-gray-500 mb-4">Le dossier demandé n'existe pas ou vous n'y avez pas accès.</p>
+          <p className="text-gray-500 mb-4">Le dossier demandé n&apos;existe pas ou vous n&apos;y avez pas accès.</p>
           <Button onClick={() => router.push('/backoffice/dossiers')}>
             Retour aux dossiers
           </Button>

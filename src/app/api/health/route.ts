@@ -3,19 +3,36 @@ import { NextRequest, NextResponse } from 'next/server'
 import { cacheService } from '@/lib/cache-service'
 import { advancedMonitoring } from '@/lib/advanced-monitoring'
 
-export async function GET(request: NextRequest) {
+interface HealthCheck {
+  status: 'healthy' | 'degraded' | 'critical';
+  message: string;
+  responseTime: number;
+  lastChecked: string;
+}
+
+interface HealthData {
+  status: 'healthy' | 'degraded' | 'critical';
+  timestamp: string;
+  environment: string;
+  version: string;
+  uptime: number;
+  checks: Record<string, HealthCheck>;
+  metrics: Record<string, unknown>;
+}
+
+export async function GET() {
   const startTime = performance.now()
   
   try {
     // Basic health check data
-    const healthData = {
+    const healthData: HealthData = {
       status: 'healthy',
       timestamp: new Date().toISOString(),
-      environment: process.env.NODE_ENV,
+      environment: process.env.NODE_ENV || 'development',
       version: process.env.npm_package_version || '1.0.0',
       uptime: process.uptime(),
-      checks: {} as Record<string, any>,
-      metrics: {} as Record<string, any>
+      checks: {},
+      metrics: {}
     }
 
     // Parallel health checks for better performance
@@ -33,7 +50,7 @@ export async function GET(request: NextRequest) {
     healthData.checks.environment = processCheck(checks[3], 'Environment')
 
     // Determine overall status
-    const checkStatuses = Object.values(healthData.checks).map((check: any) => check.status)
+    const checkStatuses = Object.values(healthData.checks).map((check: HealthCheck) => check.status)
     if (checkStatuses.every(status => status === 'healthy')) {
       healthData.status = 'healthy'
     } else if (checkStatuses.some(status => status === 'critical')) {
@@ -80,7 +97,7 @@ export async function GET(request: NextRequest) {
   }
 }
 
-async function checkDatabase() {
+async function checkDatabase(): Promise<HealthCheck> {
   try {
     const { PrismaClient } = await import('@prisma/client')
     const prisma = new PrismaClient()
@@ -99,23 +116,21 @@ async function checkDatabase() {
     
     return {
       status: responseTime < 1000 ? 'healthy' : 'degraded',
+      message: `Database responsive in ${responseTime}ms (${userCount} users)`,
       responseTime,
-      details: {
-        connected: true,
-        userCount,
-        driver: 'postgresql'
-      }
+      lastChecked: new Date().toISOString()
     }
   } catch (error) {
     return {
       status: 'critical',
-      error: error instanceof Error ? error.message : 'Database connection failed',
-      details: { connected: false }
+      message: error instanceof Error ? error.message : 'Database connection failed',
+      responseTime: 0,
+      lastChecked: new Date().toISOString()
     }
   }
 }
 
-async function checkCache() {
+async function checkCache(): Promise<HealthCheck> {
   try {
     const startTime = performance.now()
     
@@ -132,57 +147,50 @@ async function checkCache() {
     }
     
     const responseTime = Math.round(performance.now() - startTime)
-    const stats = await cacheService.getStats()
     
     return {
       status: responseTime < 500 ? 'healthy' : 'degraded',
+      message: `Cache responsive in ${responseTime}ms`,
       responseTime,
-      details: {
-        connected: true,
-        stats: {
-          keys: stats.keys,
-          memory: stats.memory
-        }
-      }
+      lastChecked: new Date().toISOString()
     }
   } catch (error) {
     return {
       status: 'critical',
-      error: error instanceof Error ? error.message : 'Cache connection failed',
-      details: { connected: false }
+      message: error instanceof Error ? error.message : 'Cache check failed',
+      responseTime: 0,
+      lastChecked: new Date().toISOString()
     }
   }
 }
 
-async function checkMemory() {
+async function checkMemory(): Promise<HealthCheck> {
   try {
-    const usage = process.memoryUsage()
-    const totalMemory = usage.heapTotal
-    const usedMemory = usage.heapUsed
-    const memoryPercent = (usedMemory / totalMemory) * 100
+    const memUsage = process.memoryUsage()
+    const totalMem = memUsage.heapTotal
+    const usedMem = memUsage.heapUsed
+    const memoryPercent = (usedMem / totalMem) * 100
     
     const status = memoryPercent < 80 ? 'healthy' : 
-                  memoryPercent < 90 ? 'degraded' : 'critical'
+                  memoryPercent < 95 ? 'degraded' : 'critical'
     
     return {
       status,
-      details: {
-        heapUsed: Math.round(usedMemory / 1024 / 1024), // MB
-        heapTotal: Math.round(totalMemory / 1024 / 1024), // MB
-        percentage: Math.round(memoryPercent),
-        rss: Math.round(usage.rss / 1024 / 1024), // MB
-        external: Math.round(usage.external / 1024 / 1024) // MB
-      }
+      message: `Memory usage: ${memoryPercent.toFixed(1)}%`,
+      responseTime: 0,
+      lastChecked: new Date().toISOString()
     }
   } catch (error) {
     return {
       status: 'critical',
-      error: error instanceof Error ? error.message : 'Memory check failed'
+      message: error instanceof Error ? error.message : 'Memory check failed',
+      responseTime: 0,
+      lastChecked: new Date().toISOString()
     }
   }
 }
 
-async function checkEnvironment() {
+async function checkEnvironment(): Promise<HealthCheck> {
   try {
     const requiredEnvVars = [
       'DATABASE_URL',
@@ -196,37 +204,40 @@ async function checkEnvironment() {
     
     return {
       status,
-      details: {
-        nodeEnv: process.env.NODE_ENV,
-        missingVariables: missingVars,
-        hasRedis: !!process.env.REDIS_URL,
-        hasSentry: !!process.env.NEXT_PUBLIC_SENTRY_DSN
-      }
+      message: missingVars.length === 0 ? 
+        'All environment variables configured' : 
+        `Missing: ${missingVars.join(', ')}`,
+      responseTime: 0,
+      lastChecked: new Date().toISOString()
     }
   } catch (error) {
     return {
       status: 'critical',
-      error: error instanceof Error ? error.message : 'Environment check failed'
+      message: error instanceof Error ? error.message : 'Environment check failed',
+      responseTime: 0,
+      lastChecked: new Date().toISOString()
     }
   }
 }
 
-function processCheck(promiseResult: PromiseSettledResult<any>, checkName: string) {
+function processCheck(promiseResult: PromiseSettledResult<HealthCheck>, checkName: string): HealthCheck {
   if (promiseResult.status === 'fulfilled') {
     return promiseResult.value
   } else {
     console.error(`Health check failed for ${checkName}:`, promiseResult.reason)
     return {
       status: 'critical',
-      error: promiseResult.reason instanceof Error ? 
+      message: promiseResult.reason instanceof Error ? 
              promiseResult.reason.message : 
-             `${checkName} check failed`
+             `${checkName} check failed`,
+      responseTime: 0,
+      lastChecked: new Date().toISOString()
     }
   }
 }
 
 // Endpoint pour un health check simplifié (liveness probe)
-export async function HEAD(request: NextRequest) {
+export async function HEAD() {
   try {
     // Simple check - just verify the app is responding
     return new NextResponse(null, { status: 200 })

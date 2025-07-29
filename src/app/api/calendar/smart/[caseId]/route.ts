@@ -1,12 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
-import SmartCalendar, { TaskAutomationManager } from '@/lib/smart-calendar'
+import SmartCalendar from '@/lib/smart-calendar'
 
-// GET /api/calendar/events/generate/:caseId - Génération d'événements automatiques
+// GET /api/calendar/smart/[caseId] - Génération d'événements automatiques
 export async function GET(
   request: NextRequest,
-  { params }: { params: { caseId: string } }
+  { params }: { params: Promise<{ caseId: string }> }
 ) {
   try {
+    // Awaiter les paramètres dans Next.js 15+
+    const { caseId } = await params
+    
     // Simulation de session pour la démo
     const session = { user: { role: 'LAWYER' } }
     
@@ -14,8 +17,6 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { caseId } = params
-    
     if (!caseId) {
       return NextResponse.json({ error: 'Case ID required' }, { status: 400 })
     }

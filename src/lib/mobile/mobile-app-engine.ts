@@ -646,4 +646,6 @@ export class MobileApplicationEngine {
   }
 }
 
+// Export par défaut et nommé pour compatibilité
 export default MobileApplicationEngine;
+export { MobileApplicationEngine as MobileAppEngine };

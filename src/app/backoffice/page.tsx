@@ -413,7 +413,7 @@ export default function BackofficeDashboard() {
             {/* Phase 3 - Intelligence & Analytics */}
             <div className="bg-gradient-to-br from-purple-50 to-blue-50 rounded-xl shadow-sm border border-purple-200 p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-2">🚀 Phase 3 - Intelligence & Analytics</h3>
-              <p className="text-sm text-gray-600 mb-6">Fonctionnalités avancées d'IA et d'analyse prédictive</p>
+              <p className="text-sm text-gray-600 mb-6">Fonctionnalités avancées d&apos;IA et d&apos;analyse prédictive</p>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <button
                   onClick={() => router.push('/backoffice/business-intelligence')}
@@ -507,7 +507,7 @@ export default function BackofficeDashboard() {
                     </div>
                     <div>
                       <h4 className="font-medium text-gray-900">Conformité RGPD</h4>
-                      <p className="text-sm text-gray-500">Consentements et droit à l'oubli</p>
+                      <p className="text-sm text-gray-500">Consentements et droit à l&apos;oubli</p>
                     </div>
                   </div>
                 </button>

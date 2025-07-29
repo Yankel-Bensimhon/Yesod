@@ -87,7 +87,7 @@ export default function ClientDetail() {
         <div className="text-center">
           <User className="h-12 w-12 text-gray-400 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-gray-900 mb-2">Client non trouvé</h3>
-          <p className="text-gray-500 mb-4">Le client demandé n'existe pas ou vous n'y avez pas accès.</p>
+          <p className="text-gray-500 mb-4">Le client demandé n&apos;existe pas ou vous n&apos;y avez pas accès.</p>
           <Button onClick={() => router.push('/backoffice/clients')}>
             Retour aux clients
           </Button>
