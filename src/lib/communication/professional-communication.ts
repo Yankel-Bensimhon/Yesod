@@ -22,7 +22,7 @@ export interface SMSTemplate {
   name: string;
   content: string;
   variables: string[];
-  category: 'REMINDER' | 'URGENT' | 'CONFIRMATION' | 'CUSTOM';
+  category: 'REMINDER' | 'NOTICE' | 'CONFIRMATION' | 'CUSTOM';
   isActive: boolean;
 }
 
@@ -243,7 +243,7 @@ export const DEFAULT_SMS_TEMPLATES: SMSTemplate[] = [
     name: 'SMS Urgent',
     content: 'URGENT - Cabinet Yesod: Dernière relance avant procédure. Dossier {{caseReference}} - {{amount}}€. Appelez-nous: 01.23.45.67.89',
     variables: ['amount', 'caseReference'],
-    category: 'URGENT',
+    category: 'NOTICE',
     isActive: true
   },
   {
@@ -338,9 +338,12 @@ export class ProfessionalCommunicationService {
 
     } catch (error) {
       captureBusinessError(error as Error, {
-        context: 'email-sending',
-        templateId,
-        recipientEmail
+        component: 'communication',
+        action: 'email-sending',
+        metadata: {
+          templateId,
+          recipientEmail
+        }
       });
       throw error;
     }
@@ -384,9 +387,12 @@ export class ProfessionalCommunicationService {
 
     } catch (error) {
       captureBusinessError(error as Error, {
-        context: 'sms-sending',
-        templateId,
-        recipientPhone
+        component: 'communication',
+        action: 'sms-sending',
+        metadata: {
+          templateId,
+          recipientPhone
+        }
       });
       throw error;
     }
@@ -471,9 +477,12 @@ export class ProfessionalCommunicationService {
 
     } catch (error) {
       captureBusinessError(error as Error, {
-        context: 'template-creation',
-        type,
-        templateName: templateData.name
+        component: 'communication',
+        action: 'template-creation',
+        metadata: {
+          type,
+          templateName: templateData.name
+        }
       });
       throw error;
     }
@@ -509,12 +518,18 @@ export class ProfessionalCommunicationService {
         take: 100
       });
 
-      return communications;
+      return communications.map(comm => ({
+        ...comm,
+        caseId: comm.caseId || undefined
+      })) as CommunicationLog[];
 
     } catch (error) {
       captureBusinessError(error as Error, {
-        context: 'communication-history',
-        filters
+        component: 'communication',
+        action: 'communication-history',
+        metadata: {
+          filters
+        }
       });
       throw error;
     }
@@ -541,7 +556,8 @@ export class ProfessionalCommunicationService {
 
     } catch (error) {
       captureBusinessError(error as Error, {
-        context: 'communication-stats'
+        component: 'communication',
+        action: 'communication-stats'
       });
       return {};
     }

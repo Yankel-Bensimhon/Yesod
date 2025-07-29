@@ -92,7 +92,7 @@ export class AdvancedInvoicingModule {
           dueDate: invoice.dueDate,
           clientId: invoice.clientId,
           caseId: invoice.caseId,
-          items: invoice.items,
+          items: JSON.stringify(invoice.items),
           subtotal: invoice.subtotal,
           vatAmount: invoice.vatAmount,
           total: invoice.total,
@@ -112,8 +112,11 @@ export class AdvancedInvoicingModule {
 
     } catch (error) {
       captureBusinessError(error as Error, {
-        context: 'invoice-generation',
-        clientId: invoiceData.clientId
+        component: 'invoicing',
+        action: 'invoice-generation',
+        metadata: {
+          clientId: invoiceData.clientId
+        }
       });
       throw error;
     }
@@ -165,7 +168,7 @@ export class AdvancedInvoicingModule {
 
       // Dossier lié si applicable
       if (invoice.case) {
-        doc.text(`Dossier: ${invoice.case.reference}`, 50, 260);
+        doc.text(`Dossier: ${invoice.case.id}`, 50, 260);
       }
 
       // Tableau des prestations
@@ -189,7 +192,8 @@ export class AdvancedInvoicingModule {
       yPosition += 10;
 
       // Items de facturation
-      (invoice.items as InvoiceItem[]).forEach((item) => {
+      const items = typeof invoice.items === 'string' ? JSON.parse(invoice.items) : invoice.items;
+      (items as InvoiceItem[]).forEach((item) => {
         doc.text(item.description, 50, yPosition)
            .text(item.quantity.toString(), 300, yPosition)
            .text(`${item.unitPrice.toFixed(2)}€`, 350, yPosition)
@@ -231,8 +235,11 @@ export class AdvancedInvoicingModule {
 
     } catch (error) {
       captureBusinessError(error as Error, {
-        context: 'invoice-pdf-generation',
-        invoiceId
+        component: 'invoicing',
+        action: 'invoice-pdf-generation',
+        metadata: {
+          invoiceId
+        }
       });
       throw error;
     }
@@ -281,7 +288,7 @@ export class AdvancedInvoicingModule {
         data: { 
           status: 'SENT',
           metadata: {
-            ...invoice.metadata,
+            ...(typeof invoice.metadata === 'object' && invoice.metadata !== null ? invoice.metadata : {}),
             sentDate: new Date().toISOString(),
             sentTo: invoice.client.email
           }
@@ -292,8 +299,11 @@ export class AdvancedInvoicingModule {
 
     } catch (error) {
       captureBusinessError(error as Error, {
-        context: 'invoice-sending',
-        invoiceId
+        component: 'invoicing',
+        action: 'invoice-sending',
+        metadata: {
+          invoiceId
+        }
       });
       throw error;
     }
@@ -355,8 +365,11 @@ export class AdvancedInvoicingModule {
 
     } catch (error) {
       captureBusinessError(error as Error, {
-        context: 'payment-plan-creation',
-        invoiceId
+        component: 'invoicing',
+        action: 'payment-plan-creation',
+        metadata: {
+          invoiceId
+        }
       });
       throw error;
     }
@@ -392,7 +405,8 @@ export class AdvancedInvoicingModule {
 
       // Si c'est un échéancier, marquer l'échéance comme payée
       if (installmentIndex !== undefined && invoice.paymentPlan) {
-        const updatedInstallments = [...invoice.paymentPlan.installments];
+        const paymentPlan = typeof invoice.paymentPlan === 'string' ? JSON.parse(invoice.paymentPlan) : invoice.paymentPlan;
+        const updatedInstallments = [...(paymentPlan.installments || [])];
         if (updatedInstallments[installmentIndex]) {
           updatedInstallments[installmentIndex] = {
             ...updatedInstallments[installmentIndex],
@@ -401,7 +415,7 @@ export class AdvancedInvoicingModule {
           };
 
           await prisma.paymentPlan.update({
-            where: { id: invoice.paymentPlan.id },
+            where: { id: paymentPlan.id },
             data: { installments: updatedInstallments }
           });
         }
@@ -421,9 +435,12 @@ export class AdvancedInvoicingModule {
 
     } catch (error) {
       captureBusinessError(error as Error, {
-        context: 'payment-processing',
-        invoiceId,
-        amount
+        component: 'invoicing',
+        action: 'payment-processing',
+        metadata: {
+          invoiceId,
+          amount
+        }
       });
       throw error;
     }
@@ -451,7 +468,8 @@ export class AdvancedInvoicingModule {
 
     } catch (error) {
       captureBusinessError(error as Error, {
-        context: 'invoicing-stats'
+        component: 'invoicing',
+        action: 'invoicing-stats'
       });
       return {};
     }

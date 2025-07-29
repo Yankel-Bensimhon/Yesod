@@ -167,7 +167,7 @@ export class WorkflowEngine {
       return conditions.every(condition => {
         switch (condition.operator) {
           case 'days_since':
-            if (condition.field === 'dueDate') {
+            if (condition.field === 'dueDate' && typeof condition.value === 'number') {
               const dueDate = new Date(caseItem.dueDate || Date.now())
               const daysSince = Math.floor((Date.now() - dueDate.getTime()) / (1000 * 60 * 60 * 24))
               return daysSince >= condition.value
@@ -254,7 +254,7 @@ export class CaseScoringEngine {
       // Facteurs positifs
       if (caseData.amount && caseData.amount < 5000) score += 20 // Petits montants plus faciles
       if (caseData.actions.length > 0) score += 15 // Actions déjà entreprises
-      if (caseData.client.type === 'CORPORATE') score += 10 // Entreprises plus solvables
+      if (caseData.client && caseData.client.type === 'COMPANY') score += 10 // Entreprises plus solvables
       if (caseData.documents.length >= 3) score += 10 // Bonne documentation
 
       // Facteurs négatifs
@@ -404,7 +404,7 @@ export class PredictiveAnalytics {
     let probability = 0.5
     const factors: string[] = []
 
-    if (caseData.client.type === 'CORPORATE') {
+    if (caseData.client && caseData.client.type === 'COMPANY') {
       probability += 0.2
       factors.push('Type entreprise (+20%)')
     }
@@ -456,7 +456,7 @@ export class PredictiveAnalytics {
     let strategy = 'Standard'
     let expectedSuccess = 60
 
-    if (client.type === 'CORPORATE' && totalAmount > 50000) {
+    if (client.type === 'COMPANY' && totalAmount > 50000) {
       strategy = 'Corporate High-Value'
       expectedSuccess = 75
     } else if (caseCount > 3) {

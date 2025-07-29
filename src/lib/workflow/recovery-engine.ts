@@ -158,7 +158,7 @@ export class RecoveryWorkflowEngine {
       const overdueCases = await prisma.case.findMany({
         where: {
           status: {
-            in: ['PENDING', 'IN_PROGRESS']
+            in: ['OPEN', 'IN_PROGRESS']
           },
           dueDate: {
             lt: new Date()
@@ -185,8 +185,11 @@ export class RecoveryWorkflowEngine {
 
     } catch (error) {
       captureBusinessError(error as Error, {
-        context: 'workflow-evaluation',
-        operation: 'evaluate-all-cases'
+        component: 'workflow',
+        action: 'workflow-evaluation',
+        metadata: {
+          operation: 'evaluate-all-cases'
+        }
       });
       throw error;
     }
@@ -286,7 +289,7 @@ export class RecoveryWorkflowEngine {
       }
 
       // Créer l'action dans la base de données
-      const newAction = await prisma.action.create({
+      const newAction = await prisma.caseAction.create({
         data: {
           caseId: caseData.id,
           type: action.type.toUpperCase(),
@@ -312,10 +315,13 @@ export class RecoveryWorkflowEngine {
 
     } catch (error) {
       captureBusinessError(error as Error, {
-        context: 'workflow-action-execution',
-        actionType: action.type,
-        caseId: caseData.id,
-        workflowId: workflow.id
+        component: 'workflow',
+        action: 'workflow-action-execution',
+        metadata: {
+          actionType: action.type,
+          caseId: caseData.id,
+          workflowId: workflow.id
+        }
       });
     }
   }
@@ -374,15 +380,18 @@ export class RecoveryWorkflowEngine {
 
     } catch (error) {
       captureBusinessError(error as Error, {
-        context: 'workflow-stats',
-        operation: 'get-stats'
+        component: 'workflow',
+        action: 'workflow-stats',
+        metadata: {
+          operation: 'get-stats'
+        }
       });
       return {};
     }
   }
 
   private async countWorkflowExecutions(): Promise<number> {
-    return await prisma.action.count({
+    return await prisma.caseAction.count({
       where: {
         metadata: {
           path: ['automated'],
@@ -393,7 +402,7 @@ export class RecoveryWorkflowEngine {
   }
 
   private async getActionStatsByType(): Promise<Record<string, number>> {
-    const actions = await prisma.action.groupBy({
+    const actions = await prisma.caseAction.groupBy({
       by: ['type'],
       _count: {
         type: true
@@ -413,7 +422,7 @@ export class RecoveryWorkflowEngine {
   }
 
   private async calculateSuccessRate(): Promise<number> {
-    const totalActions = await prisma.action.count({
+    const totalActions = await prisma.caseAction.count({
       where: {
         metadata: {
           path: ['automated'],
@@ -422,7 +431,7 @@ export class RecoveryWorkflowEngine {
       }
     });
 
-    const completedActions = await prisma.action.count({
+    const completedActions = await prisma.caseAction.count({
       where: {
         metadata: {
           path: ['automated'],

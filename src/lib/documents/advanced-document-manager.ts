@@ -337,7 +337,7 @@ export class AdvancedDocumentManager {
         where: { id: document.id },
         data: {
           status: 'READY',
-          category: suggestedCategory || document.category,
+          category: (suggestedCategory as any) || document.category,
           thumbnailPath,
           extractedData: {
             text: extractedText,

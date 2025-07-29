@@ -208,7 +208,7 @@ export class SmartCalendar {
 
       for (let day = 0; day < lookAheadDays; day++) {
         const currentDate = new Date(now.getTime() + day * 24 * 60 * 60 * 1000)
-        const dayName = currentDate.toLocaleDateString('en-US', { weekday: 'lowercase' })
+        const dayName = currentDate.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase()
         
         // Exclure weekends et jours spécifiés
         if (excludeDays.includes(dayName) || dayName === 'saturday' || dayName === 'sunday') {
@@ -351,7 +351,7 @@ export class SmartCalendar {
       return { success: true, synced: events.length }
     } catch (error) {
       console.error(`Error syncing with ${calendarType}:`, error)
-      return { success: false, error: error.message }
+      return { success: false, error: error instanceof Error ? error.message : String(error) }
     }
   }
 
