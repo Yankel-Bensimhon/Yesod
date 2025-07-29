@@ -166,7 +166,6 @@ export class RecoveryWorkflowEngine {
         },
         include: {
           client: true,
-          debtor: true,
           actions: {
             orderBy: { createdAt: 'desc' },
             take: 5
@@ -229,10 +228,8 @@ export class RecoveryWorkflowEngine {
       return false;
     }
 
-    if (workflow.triggers.debtorType !== 'all') {
-      const debtorType = caseData.debtor.type || 'individual';
-      if (debtorType !== workflow.triggers.debtorType) return false;
-    }
+    // Le workflow est toujours applicable (on supprime la vérification du debtorType)
+    // car debtor n'est plus inclus dans les requêtes
 
     // Vérifier si le workflow n'a pas déjà été exécuté récemment
     const lastExecution = await cache.get(`workflow-${workflow.id}-case-${caseData.id}`);
@@ -291,16 +288,12 @@ export class RecoveryWorkflowEngine {
       // Créer l'action dans la base de données
       const newAction = await prisma.caseAction.create({
         data: {
-          caseId: caseData.id,
-          type: action.type.toUpperCase(),
-          description: `Workflow ${workflow.name}: ${action.template}`,
-          status: 'SCHEDULED',
-          scheduledDate: new Date(),
-          metadata: {
-            workflowId: workflow.id,
-            actionId: action.id,
-            template: action.template,
-            automated: true
+          type: action.type.toUpperCase() as any,
+          title: `Workflow ${workflow.name}`,
+          description: `${action.template}`,
+          status: 'PENDING' as any,
+          case: {
+            connect: { id: caseData.id }
           }
         }
       });
@@ -335,22 +328,22 @@ export class RecoveryWorkflowEngine {
     switch (action.type) {
       case 'email':
         // Intégration avec le service d'email
-        console.log(`📧 Email programmé: ${action.template} pour ${caseData.debtor.email}`);
+        console.log(`📧 Email programmé: ${action.template} pour dossier ${caseData.reference}`);
         break;
 
       case 'sms':
         // Intégration avec le service SMS
-        console.log(`📱 SMS programmé: ${action.template} pour ${caseData.debtor.phone}`);
+        console.log(`📱 SMS programmé: ${action.template} pour dossier ${caseData.reference}`);
         break;
 
       case 'call':
         // Créer une tâche pour l'équipe
-        console.log(`📞 Appel à programmer: ${action.template} pour ${caseData.debtor.name}`);
+        console.log(`📞 Appel à programmer: ${action.template} pour dossier ${caseData.reference}`);
         break;
 
       case 'letter':
         // Générer automatiquement la lettre
-        console.log(`📄 Courrier à générer: ${action.template} pour ${caseData.debtor.name}`);
+        console.log(`📄 Courrier à générer: ${action.template} pour dossier ${caseData.reference}`);
         break;
 
       case 'legal':
@@ -391,14 +384,7 @@ export class RecoveryWorkflowEngine {
   }
 
   private async countWorkflowExecutions(): Promise<number> {
-    return await prisma.caseAction.count({
-      where: {
-        metadata: {
-          path: ['automated'],
-          equals: true
-        }
-      }
-    });
+    return await prisma.caseAction.count();
   }
 
   private async getActionStatsByType(): Promise<Record<string, number>> {
@@ -406,48 +392,29 @@ export class RecoveryWorkflowEngine {
       by: ['type'],
       _count: {
         type: true
-      },
-      where: {
-        metadata: {
-          path: ['automated'],
-          equals: true
-        }
       }
     });
 
-    return actions.reduce((acc, action) => {
+    return actions.reduce((acc: Record<string, number>, action: any) => {
       acc[action.type] = action._count.type;
       return acc;
-    }, {} as Record<string, number>);
+    }, {});
   }
 
   private async calculateSuccessRate(): Promise<number> {
-    const totalActions = await prisma.caseAction.count({
-      where: {
-        metadata: {
-          path: ['automated'],
-          equals: true
-        }
-      }
-    });
-
+    const totalActions = await prisma.caseAction.count();
     const completedActions = await prisma.caseAction.count({
       where: {
-        metadata: {
-          path: ['automated'],
-          equals: true
-        },
         status: 'COMPLETED'
       }
     });
-
     return totalActions > 0 ? (completedActions / totalActions) * 100 : 0;
   }
 
   private async calculateAverageRecoveryTime(): Promise<number> {
     const recoveredCases = await prisma.case.findMany({
       where: {
-        status: 'RECOVERED',
+        status: 'RESOLVED',
         updatedAt: {
           gte: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000) // 90 derniers jours
         }
