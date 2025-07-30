@@ -190,27 +190,6 @@ export default function SignIn() {
               </Button>
             </div>
 
-            {/* Test Admin Section */}
-            <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-              <h3 className="text-sm font-medium text-blue-900 mb-2">Accès Admin Test</h3>
-              <div className="text-xs text-blue-700 space-y-1">
-                <p><strong>Email:</strong> yankel.bensimhon@gmail.com</p>
-                <p><strong>Mot de passe:</strong> AZEqsd1234#</p>
-              </div>
-              <Button
-                type="button"
-                onClick={() => {
-                  setEmail('yankel.bensimhon@gmail.com')
-                  setPassword('AZEqsd1234#')
-                }}
-                variant="outline"
-                size="sm"
-                className="mt-2 w-full bg-blue-100 hover:bg-blue-200 text-blue-800"
-              >
-                Remplir les identifiants admin
-              </Button>
-            </div>
-
           </form>
         </div>
 
