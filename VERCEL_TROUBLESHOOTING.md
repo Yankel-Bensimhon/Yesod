@@ -31,8 +31,8 @@ NEXTAUTH_URL=https://your-app-name.vercel.app
 NEXTAUTH_SECRET=hCn8DfUOWSRslEtzEqJ1+xKClV6Zb4BZm3BfcNF375c=
 
 # Google OAuth (optionnel mais recommandé)
-GOOGLE_CLIENT_ID=991008648507-ge4mgcq11iint2era3o0gd4rh3bk9aa4.apps.googleusercontent.com
-GOOGLE_CLIENT_SECRET=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
+GOOGLE_CLIENT_ID=votre-google-client-id
+GOOGLE_CLIENT_SECRET=votre-google-client-secret
 
 # Environment
 NODE_ENV=production
