@@ -239,3 +239,4 @@ Ce projet est sous licence propriétaire. Tous droits réservés au Cabinet Yeso
 ---
 
 **Cabinet Yesod** - Recouvrement de Créances Professionnel & Efficace
+# Trigger Vercel deployment
